@@ -1,0 +1,7 @@
+#!/bin/sh
+dir="$HOME/src/$1"
+git clone "git://git.suckless.org/$1" $dir
+cd $dir
+git branch config
+git checkout config
+

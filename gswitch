@@ -1,0 +1,16 @@
+#!/bin/sh
+
+confdir=/usr/share/X11/xorg.conf.d/10-nvidia-drm-outputclass.conf
+option='Option "PrimaryGPU"'
+
+
+if [ "$(cat  $confdir | grep "#$option")" ]; then
+	echo 'swtiching to dedicated graphics'
+	sedcmd=s/\#$option/$option/
+else 
+	echo 'swtiching to integrated graphics'
+	sedcmd=s/$option/\#$option/
+fi
+
+cat $confdir | sed "$sedcmd" > $confdir.new
+mv $confdir.new $confdir

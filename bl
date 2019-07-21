@@ -1,0 +1,16 @@
+#!/bin/sh
+bldir="/sys/class/backlight/intel_backlight"
+brightness=$(cat $bldir/brightness)
+maxbrightness=$(cat $bldir/max_brightness)
+
+if [ "$1" ]; then
+	delta=0
+	if [ "$1" = "+" ]; then
+		delta=500
+	elif [ "$1" = "-" ]; then
+		delta=-500
+	fi
+	echo $((brightness + delta)) > $bldir/brightness
+else
+	echo $((brightness * 100 / $maxbrightness))
+fi

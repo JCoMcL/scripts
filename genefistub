@@ -1,0 +1,6 @@
+#!/bin/sh
+label="Arch Linux"
+kernel_params=$(cat /etc/kernel-params.conf | tr '\n' ' ')
+efibootmgr -B -b $(efibootmgr | grep "$label" | awk -F '' '{print $5 $6 $7 $8}')
+efibootmgr --disk /dev/sda --part 1 --create --label  "$label" --loader /vmlinuz-linux --unicode "$kernel_params" --verbose
+

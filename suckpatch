@@ -1,0 +1,19 @@
+#!/bin/sh
+
+site="$1.suckless.org/patches/"
+
+cd ~/src/$1
+git checkout master
+make clean && git reset --hard origin/master
+
+patch=$(curl -s $site | grep -o -P "$site.+?/" | awk -F / '{print $3}'| dmenu)
+
+git branch $patch
+git checkout $patch
+patchsite=$(curl -s $site$patch/) 
+
+curl $site$patch/$(echo $patchsite | grep -o -P "$1-.+?\.diff" | dmenu) > "$patch.diff"
+git apply $patch.diff
+git add .
+git commit -m $patch
+
