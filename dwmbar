@@ -15,7 +15,7 @@ audioname=$(pulsemixer --list-sinks | grep Default | awk '{print $5}' | tr -d ".
 audiolevel=$(pulsemixer --get-volume | awk '{print $1}')
 addtostatus " $audioname $audiolevel%"
 
-addtostatus "$(bl)%"
+addtostatus "$(light | awk -F '.' '{print $1}')%"
 
 #acpi | awk '{print $3" "$4}' | tr -d "%," | read 'batstat' 'batlevel'
 addtostatus "$(acpi | sed 1q | awk '{print $4}' | tr -d ',' )"
