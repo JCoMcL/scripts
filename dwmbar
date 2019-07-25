@@ -1,25 +1,19 @@
 #!/bin/sh 
-
-while true; do
-if [ -z ${DISPLAY+x} ]; then exit
-fi
 addtostatus() 
 {
 	delim=' | '
 	barstatus=$@$delim$barstatus
 }
-
+while :; do
 barstatus=$(date +%a' '%m-%d' '%H:%M:%S)
 
-audioname=$(pulsemixer --list-sinks | grep Default | awk '{print $5}' | tr -d ".,")
-audiolevel=$(pulsemixer --get-volume | awk '{print $1}')
-addtostatus " $audioname $audiolevel%"
+sinkname=$(pactl info | sed -n 13p | awk '{print $3}')
+addtostatus "$(pactl list sinks | sed -n "/$sinkname/{n;p;n;n;n;n;n;n;p;q}" | tr -d '\n' | awk '{print ""$2" "$(NF-3)}')"
 
 addtostatus "$(light | awk -F '.' '{print $1}')%"
 
-#acpi | awk '{print $3" "$4}' | tr -d "%," | read 'batstat' 'batlevel'
 addtostatus "$(acpi | sed 1q | awk '{print $4}' | tr -d ',' )"
 
 xsetroot -name "$barstatus"
-sleep 5s
+sleep 1s
 done &
