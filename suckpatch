@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh
 
 if [ -z "$1" ] ; then
 	app=`basename \`pwd\`` #name of current directory
@@ -22,7 +22,7 @@ git branch $patch
 git checkout $patch
 patchsite=$(curl -s $site$patch/) 
 
-curl $site$patch/$(echo $patchsite | grep -o -P "$app-.+?\.diff" | dmenu) > "$patch.diff"
+curl $site$patch/$(echo $patchsite | grep -o -P "\"$app-.+?\.diff" | tr -d "\"" | dmenu) > "$patch.diff"
 
 git apply $patch.diff
 git add .
