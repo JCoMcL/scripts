@@ -1,5 +1,5 @@
 git checkout config
-vim config.def.h
+$EDITOR config.def.h
 git add .
 git commit -m config
 

@@ -1,18 +1,29 @@
-#!/bin/sh
+#!/bin/sh -x
 
-site="$1.suckless.org/patches/"
+if [ -z "$1" ] ; then
+	app=`basename \`pwd\`` #name of current directory
+else
+	app="$1"
+fi
+site="$app.suckless.org/patches/"
 
-cd ~/src/$1
-git checkout master
-make clean && git reset --hard origin/master
+cd ~/src/$app
+
+git checkout config
 
 patch=$(curl -s $site | grep -o -P "$site.+?/" | awk -F / '{print $3}'| dmenu)
+
+if [ -z "$patch" ] ; then
+	echo "Aborting"
+	exit
+fi
 
 git branch $patch
 git checkout $patch
 patchsite=$(curl -s $site$patch/) 
 
-curl $site$patch/$(echo $patchsite | grep -o -P "$1-.+?\.diff" | dmenu) > "$patch.diff"
+curl $site$patch/$(echo $patchsite | grep -o -P "$app-.+?\.diff" | dmenu) > "$patch.diff"
+
 git apply $patch.diff
 git add .
 git commit -m $patch
