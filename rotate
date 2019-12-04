@@ -1,0 +1,55 @@
+#!/bin/sh -x
+#
+# adapted from mildmojo
+#
+# Rotates modern Linux desktop screen and input devices to match. Handy for
+# convertible notebooks. Call this script from panel launchers, keyboard
+# shortcuts, or touch gesture bindings (xSwipe, touchegg, etc.).
+#
+# Using transformation matrix bits taken from:
+#   https://wiki.ubuntu.com/X/InputCoordinateTransformation
+
+if [ -z "$1" ]; then
+  echo "Missing orientation."
+  echo "Usage: $0 [normal|inverted|left|right] [revert_seconds]"
+  echo
+  exit 1
+fi
+
+matrix() {
+	case "$1" in
+		normal)
+			echo "1 0 0 0 1 0 0 0 1";;
+		inverted)
+			echo "-1 0 1 0 -1 1 0 0 1";;
+		left)
+			echo "0 -1 1 1 0 0 0 0 1";;
+		right)
+			echo "0 1 0 -1 0 1 0 0 1";;
+	esac
+}
+
+rotate_input() {
+	xinput set-prop "$1" "Coordinate Transformation Matrix" `matrix $2`
+}
+rotate() {
+	xrandr --output $2 --rotate $1
+
+	for DEVICE in 	"ATML1000:00 03EB:8A79"\
+			"Wacom HID 16C Pen stylus"\
+			"Wacom HID 16C Pen eraser"; do
+		rotate_input "$DEVICE" $1
+	done
+}
+
+XDISPLAY=`xrandr --current | awk '/primary/ {print $1}'`
+XROT=`xrandr --current --verbose | awk '/primary/ {print $6}'`
+
+rotate $1 $XDISPLAY 
+
+if [ ! -z "$2" ]; then
+  sleep $2
+  rotate $XDISPLAY $XROT
+  exit 0
+fi
+
