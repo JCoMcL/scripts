@@ -1,0 +1,16 @@
+#!/bin/sh
+
+#TODO eliminate the loop and take advantage of stream editing
+ls | while read -r FILE; do
+	mv -n "$FILE" `
+		echo $FILE |
+		sed '
+			s/\(.*\)/\L\1/;
+			s/jpeg/jpg/;
+			y/ _/--/;
+			s/--[-]*/-/g;
+			s/^-//
+		'|
+		tr -d \'\"
+	`
+done
