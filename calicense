@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# command line license picker using github's choosealicense.com and umenu. Might be branched off into it's own repo at some point, complete with config files and local caching.
+
+YEAR=`date +%Y`
+FULLNAME="Jordan Conway-McLaughlin"
+
+# retrieve the name of the preffered license
+if [ -z $1 ]; then LICENSE=`
+	curl https://choosealicense.com/licenses/ |
+	sed -n 's/^.*<p.*<a href=\"\/licenses\/\(.*\)\/\">.*$/\1/p' |
+	umenu
+`
+else
+	LICENSE=$1
+fi
+
+# get plain text of license and replace any placeholder text (in the case of MIT)
+curl "https://choosealicense.com/licenses/$LICENSE/" |
+sed -n '/<pre/,/<\/pre/p' |
+sed "
+	/<\/*pre/d;
+	s/\[year\]/$YEAR/;
+	s/\[fullname\]/$FULLNAME/
+"
