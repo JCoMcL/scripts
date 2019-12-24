@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# pours out the contents of a directory into the parent directory and delte the empty directory
+
+for DIR in $@; do
+	if [ -d $DIR ]; then
+		mv -n $DIR/* `dirname $DIR`
+		rmdir $DIR
+	fi
+done
