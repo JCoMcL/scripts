@@ -1,2 +1,4 @@
+#!/bin/sh
+
 mv $1 $2
 ln $2/`basename $1` $1
