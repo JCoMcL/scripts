@@ -1,5 +1,5 @@
 #!/bin/sh
 FILENAME=$SCREENSHOTS/$1"$(date +%F_%T).png"
-cat /dev/stdin > $FILENAME
+< /dev/stdin > $FILENAME
 notify-send "Screenshot" "$FILENAME" -i $FILENAME
 

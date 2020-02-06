@@ -12,5 +12,5 @@ else
 	sedcmd=s/$option/\#$option/
 fi
 
-cat $confdir | sed "$sedcmd" > $confdir.new
+sed "$sedcmd" $confdir > $confdir.new
 mv $confdir.new $confdir
