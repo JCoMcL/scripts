@@ -1,3 +1,0 @@
-#!/bin/sh
-
-cat ~/.scripts/.icons | awk '{print $1" "$2}' | dmenu | awk '{print $1}'

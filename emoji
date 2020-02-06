@@ -1,3 +1,0 @@
-#!/bin/sh
-
-cat ~/.scripts/.emoji | dmenu | awk '{print $1}'
