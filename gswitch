@@ -1,16 +1,8 @@
 #!/bin/sh
+conf="/etc/X11/xorg.conf.d/21-intel-prime.conf"
+test -e "$conf.disabled" &&
+	echo "Switching to integrated graphics" ||
+	echo "Switching to dedicated graphics"
 
-confdir=/usr/share/X11/xorg.conf.d/10-nvidia-drm-outputclass.conf
-option='Option "PrimaryGPU"'
+able $conf
 
-
-if [ "$(grep "#$option" $confdir)" ]; then
-	echo 'swtiching to dedicated graphics'
-	sedcmd=s/\#$option/$option/
-else 
-	echo 'swtiching to integrated graphics'
-	sedcmd=s/$option/\#$option/
-fi
-
-sed "$sedcmd" $confdir > $confdir.new
-mv $confdir.new $confdir
