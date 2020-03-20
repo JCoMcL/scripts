@@ -1,0 +1,23 @@
+#!/bin/sh
+
+#adds or removes a "disabled" extension to a file - useful for configuration files or udev rules
+
+toggle() {
+	if [ -e "$1" ]; then
+		#check for "disabled" extension
+		test $(echo "$1" | awk -F '.' '{print $NF}') = "disabled" &&	
+
+		mv "$1" "$(echo "$1" | awk -F '.' '{OFS="."; NF=NF-1; print $0}')" ||
+		mv "$1" "$1.disabled"
+	
+	elif [ -e "$1.disabled" ]; then
+		mv "$1.disabled" "$1"
+	
+	else
+		>&2 echo "$1 or $1.disabled does not exist"
+		false
+	fi
+}
+for ARG in "$@"; do
+	toggle "$ARG"
+done
