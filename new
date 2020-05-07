@@ -1,0 +1,19 @@
+#!/bin/sh
+
+make_new() {
+	NEWNAME=`basename $1`
+	NEWDIR=`dirname $1`
+
+	cp $NEWDIR/.TEMP $NEWDIR/$NEWNAME #ensures that permissions are copied
+	sed "s/TEMP/$NEWNAME/g" $NEWDIR/.TEMP > $NEWDIR/$NEWNAME
+	$EDITOR $NEWDIR/$NEWNAME
+}
+
+if [ -n "$1" ]; then
+	make_new "$1"
+elif [ -n "`xclip -selection clipboard -o`" ]; then
+	make_new "`xclip -selection clipboard -o`"
+else
+	make_new "test"
+fi
+
