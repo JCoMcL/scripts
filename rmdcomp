@@ -1,0 +1,16 @@
+#!/bin/sh -x
+
+render() {
+	echo "require(rmarkdown); render('$1')" | R --vanilla
+}
+
+if test -z "$@"; then
+	for FILE in `ls *.rmd`; do
+		test -e "$FILE" && render "$FILE"
+	done
+else
+	for FILE in "$@"; do
+		test -e "$FILE" && render "$FILE"
+	done
+fi
+
