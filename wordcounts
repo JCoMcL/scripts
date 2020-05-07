@@ -1,0 +1,28 @@
+#!/bin/env python3
+
+import sys
+import re
+
+pat = re.compile(r"[^a-z']")
+
+def get_words(iterator):
+
+    if isinstance(iterator, str):
+        iterator = [iterator]
+
+    for line in iterator:
+        for word in re.split(pat, line.casefold()):
+            word = word.replace("'","")
+            if len(word):
+                yield word
+d = {}
+for w in get_words(sys.stdin):
+    if w in d:
+        d[w] += 1
+    else:
+        d[w] = 1
+
+for word, count in sorted(d.items(), reverse=True, key=lambda a : a[1]):
+    print(f"{word}, {count}")
+	
+

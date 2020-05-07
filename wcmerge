@@ -1,0 +1,16 @@
+#!/bin/env python
+
+import sys
+
+d = {}
+for l in sys.stdin:
+    word, count = [e.strip() for e in l.split(",")]
+    count = int(count)
+    if word in d:
+        d[word] += count
+    else:
+        d[word] = count
+
+for word, count in sorted(d.items(), reverse=True, key=lambda a : a[1]):
+    print(f"{word}, {count}")
+

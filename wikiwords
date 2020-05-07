@@ -1,0 +1,5 @@
+#!/bin/sh
+
+grep -EA 99999 "<body" |
+sed -E "/id=\"References\"/q;s/<\/?[a-z]+[1-9]? ?([a-z]+=\"[^<>]*\" ?)*>//g"
+
