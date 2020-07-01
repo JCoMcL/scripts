@@ -1,0 +1,9 @@
+#!/bin/sh
+xrandr --output DP-0 --auto --scale 1.5x1.5 --pos 480x0 --rotate normal --output eDP-1-1 --auto --primary --mode 3840x2160 --pos 0x1620
+xwallpaper --zoom ~/media/images/internet-oddities/pape-temple.jpg
+xinput map-to-output 'ATML1000:00 03EB:8A79' eDP-1-1
+xinput map-to-output 'Wacom HID 16C Pen eraser' eDP-1-1
+xinput map-to-output 'Wacom HID 16C Pen stylus' eDP-1-1
+xinput --set-prop 'Wacom HID 16C Pen stylus' 'Wacom button action 1' 1572867
+xinput --set-prop 'Wacom HID 16C Pen eraser' 'Wacom button action 0' 1572866
+xinput --set-prop 'Wacom HID 16C Pen stylus' 'Wacom button action 0' 1572865
