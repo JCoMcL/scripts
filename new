@@ -1,12 +1,37 @@
 #!/bin/sh
 
-make_new() {
-	NEWNAME=`basename $1`
-	NEWDIR=`dirname $1`
+template_lib="$XDG_DATA_HOME/new"
 
-	cp $NEWDIR/.TEMP $NEWDIR/$NEWNAME #ensures that permissions are copied
-	sed "s/TEMP/$NEWNAME/g" $NEWDIR/.TEMP > $NEWDIR/$NEWNAME
-	$EDITOR $NEWDIR/$NEWNAME
+extension() { basename "$1" | awk -F '.' '{print $NF}';}
+ldir() { find $1 -maxdepth 1 ! -path "$1";}
+
+make_new() {
+	template="$(dirname $1)/.TEMP"
+
+	#pick a file from the template library with a matching extension
+	test -e "$template" || template="$(
+		ldir "$template_lib" |
+		grep "$(extension $1)$" |
+		umenu
+	)"
+
+	#pick any file from the template library
+	test -e "$template" || template="$(
+		ldir "$template_lib" |
+		umenu
+	)"
+
+	test -e "$template" || {
+		echo "Error, no template files found" >&2
+		exit 1
+	}
+
+	test -e $1 || {
+		cp $template $1 #ensures that permissions are copied
+		sub="$(basename "$1")"
+		sed -i "s/TEMP/$sub/g" $1
+	}
+	$EDITOR $1
 }
 
 if [ -n "$1" ]; then
