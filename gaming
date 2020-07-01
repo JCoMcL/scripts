@@ -1,0 +1,6 @@
+#!/bin/sh
+
+echo "$(xrandr --output DP-0 --scale 1x1)" | grep -vs ignoring ||
+echo "$(xrandr --output eDP-1 --mode 1920x1080)" | grep -vs ignoring ||
+xrandr --output eDP-1-1 --mode 1920x1080
+
