@@ -1,0 +1,15 @@
+#!/bin/sh
+
+NOITAPATH="$STEAM_DIR/steamapps/compatdata/881100/pfx/drive_c/users/steamuser/AppData/LocalLow/Nolla_Games_Noita"
+
+NOITASAVE="$(ls $NOITAPATH | {
+	test -n "$1" &&
+		sed -n "/$1/{p;q}" ||
+		umenu
+})"
+
+cd $NOITAPATH
+rm -r save00.bak
+mv save00 save00.bak
+cp -rf $NOITASAVE save00
+echo "loaded $NOITASAVE"
