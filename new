@@ -1,6 +1,8 @@
 #!/bin/sh
 
-template_lib="$XDG_DATA_HOME/new"
+test $UID -eq 0 &&
+	template_lib="$XDG_DATA_DIRS/new" ||
+	template_lib="$XDG_DATA_HOME/new"
 
 extension() { basename "$1" | awk -F '.' '{print $NF}';}
 nextension() {
