@@ -63,6 +63,7 @@ deploy_dir() { #takes path to .deploy file as argument
 
 	#there are 4 possible modes for deployment: user to root, user to user, root to root, root to user
 	#for now, only user to root is being implemented
+	#TODO add ROOTEXCLUDE, ROOTINCLUDE, USEREXCLUDE, USERINCLUDE
 	test -v ROOTDIR ||
 	ROOTDIR="$(xdg_dir_convert $src/..)/$(basename $src)" || {
 		echo "Could not resolve destination for $src"
