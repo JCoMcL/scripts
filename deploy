@@ -5,23 +5,26 @@ finddeploy() {
 	find $1 -mount -name ".deploy" 2>/dev/null | tr '\n' ' '
 }
 
-rsync_cmd() {
-	rsync --recursive --update --executability --human-readable --dry-run --progress "$@"
+rsync_args() {
+	echo "--recursive --update --executability --human-readable --dry-run --progress"
 }
 
 #takes patterns to exclude as argumuments
 #returns patterns in the form --exclude=PATTERN1 --exclude=PATTERN2 etc.
 #FIXME doesn't support spaces; an argument with spaces is output in the form: '--exclude='\''foo' 'bar'\''', rather than --exclude='foo bar'
+build_longargs(){
+	awk -F ':' '{
+ 		for (i=1; i<=NF; i++)
+			printf "--'$argstring'='"'"'"$i"'"'"' "
+	}'
+}
+
 rsync_exclude() {
-	for pat in $@; do
-		echo -n --exclude=$pat' ' | tr -d "'"
-	done
+	( argstring=exclude; echo "$@" | build_longargs )
 }
 
 rsync_include() {
-	for pat in $@; do
-		echo -n --include=$pat' '
-	done
+	( argstring=include; echo "$@" | build_longargs )
 }
 
 rsync_host() {
@@ -47,7 +50,7 @@ xdg_dir_convert() {
 	fi
 }
 
-#FIXME to be of any use, this needs to detect any user's home, not just the current home
+#true of the given file is within the HOME of its owner
 is_user_file() {
 	usr=$(stat -c '%U' $1)
 	realpath $1 | grep -E "^$(eval echo "~$usr")"
@@ -59,7 +62,7 @@ deploy_dir() { #takes path to .deploy file as argument
 	source $1
 
 	#there are 4 possible modes for deployment: user to root, user to user, root to root, root to user
-	#for now, only user to root is implemented
+	#for now, only user to root is being implemented
 	test -v ROOTDIR ||
 	ROOTDIR="$(xdg_dir_convert $src/..)/$(basename $src)" || {
 		echo "Could not resolve destination for $src"
@@ -67,10 +70,15 @@ deploy_dir() { #takes path to .deploy file as argument
 	}
 	dest="$ROOTDIR"
 
-	rsync_cmd \
-		$(rsync_exclude $(test -v EXCLUDE && echo $EXCLUDE) .deploy)\
-		$(rsync_include $(test -v INCLUDE && echo $INCLUDE))\
-		"$src" "kico:$dest"
+	#rsync_cmd \
+	#	$(rsync_exclude $(test -v EXCLUDE && echo $EXCLUDE) .deploy)\
+	#	$(rsync_include $(test -v INCLUDE && echo $INCLUDE))\
+	#	"$src" "kico:$dest"
+	{	rsync_include $(test -v INCLUDE && echo $INCLUDE)
+		rsync_exclude $(test -v EXCLUDE && echo $EXCLUDE):.deploy
+		rsync_args
+		echo "$src kico:$dest"
+	} | xargs -px rsync
 }
 
 while getopts ":u:h" opt; do
