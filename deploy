@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 #TODO make the -mount option a user preference
 finddeploy() {
@@ -6,7 +6,7 @@ finddeploy() {
 }
 
 rsync_args() {
-	echo "--recursive --update --executability --human-readable --dry-run --progress"
+	echo "--recursive --update --executability --human-readable"
 }
 
 build_longargs(){
@@ -72,7 +72,7 @@ deploy_dir() { #takes path to .deploy file as argument
 		rsync_exclude $(test -v EXCLUDE && echo $EXCLUDE):.deploy
 		rsync_args
 		echo "$src kico:$dest"
-	} | xargs -px rsync
+	} | xargs rsync
 }
 
 while getopts ":u:h" opt; do
@@ -90,8 +90,6 @@ while getopts ":u:h" opt; do
 			;;
 	esac
 done
-echo $#
-echo $1
 
 for d in $(finddeploy); do
 	(deploy_dir $d)
