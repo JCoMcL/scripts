@@ -1,0 +1,96 @@
+#!/bin/bash -x
+
+#TODO make the -mount option a user preference
+finddeploy() {
+	find $1 -mount -name ".deploy" 2>/dev/null | tr '\n' ' '
+}
+
+rsync_cmd() {
+	rsync --recursive --update --executability --human-readable --dry-run --progress "$@"
+}
+
+#takes patterns to exclude as argumuments
+#returns patterns in the form --exclude=PATTERN1 --exclude=PATTERN2 etc.
+#FIXME doesn't support spaces; an argument with spaces is output in the form: '--exclude='\''foo' 'bar'\''', rather than --exclude='foo bar'
+rsync_exclude() {
+	for pat in $@; do
+		echo -n --exclude=$pat' ' | tr -d "'"
+	done
+}
+
+rsync_include() {
+	for pat in $@; do
+		echo -n --include=$pat' '
+	done
+}
+
+rsync_host() {
+	test -v 
+}
+
+#convert an xdg user directory to its root equivalent and vice-versa
+xdg_dir_convert() {
+	if [ "$1" -ef "$XDG_CONFIG_DIRS" ]; then
+		echo "$XDG_CONFIG_HOME"
+	elif [ "$1" -ef "$XDG_CACHE_DIRS" ]; then
+		echo "$XDG_CACHE_HOME"
+	elif [ "$1" -ef "$XDG_DATA_DIRS" ]; then
+		echo "$XDG_DATA_HOME"
+	elif [ "$1" -ef "$XDG_CONFIG_HOME" ]; then
+		echo "$XDG_CONFIG_DIRS"
+	elif [ "$1" -ef "$XDG_CACHE_HOME" ]; then
+		echo "$XDG_CACHE_DIRS"
+	elif [ "$1" -ef "$XDG_DATA_HOME" ]; then
+		echo "$XDG_DATA_DIRS"
+	else
+		return 1
+	fi
+}
+
+#FIXME to be of any use, this needs to detect any user's home, not just the current home
+is_user_file() {
+	usr=$(stat -c '%U' $1)
+	realpath $1 | grep -E "^$(eval echo "~$usr")"
+}
+
+deploy_dir() { #takes path to .deploy file as argument
+	set -u
+	src="$(dirname $1)/"
+	source $1
+
+	#there are 4 possible modes for deployment: user to root, user to user, root to root, root to user
+	#for now, only user to root is implemented
+	test -v ROOTDIR ||
+	ROOTDIR="$(xdg_dir_convert $src/..)/$(basename $src)" || {
+		echo "Could not resolve destination for $src"
+		return 1
+	}
+	dest="$ROOTDIR"
+
+	rsync_cmd \
+		$(rsync_exclude $(test -v EXCLUDE && echo $EXCLUDE) .deploy)\
+		$(rsync_include $(test -v INCLUDE && echo $INCLUDE))\
+		"$src" "kico:$dest"
+}
+
+while getopts ":u:h" opt; do
+	case $opt in
+		u)
+			user="$OPTARG"
+			;;
+		h)
+			echo "you are beyond help"
+			exit
+			;;
+		:)
+			echo "Option -$OPTARG requires an argument" >&2
+			exit 1
+			;;
+	esac
+done
+echo $#
+echo $1
+
+for d in $(finddeploy); do
+	(deploy_dir $d)
+done
