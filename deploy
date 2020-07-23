@@ -9,9 +9,6 @@ rsync_args() {
 	echo "--recursive --update --executability --human-readable --dry-run --progress"
 }
 
-#takes patterns to exclude as argumuments
-#returns patterns in the form --exclude=PATTERN1 --exclude=PATTERN2 etc.
-#FIXME doesn't support spaces; an argument with spaces is output in the form: '--exclude='\''foo' 'bar'\''', rather than --exclude='foo bar'
 build_longargs(){
 	awk -F ':' '{
  		for (i=1; i<=NF; i++)
@@ -71,10 +68,6 @@ deploy_dir() { #takes path to .deploy file as argument
 	}
 	dest="$ROOTDIR"
 
-	#rsync_cmd \
-	#	$(rsync_exclude $(test -v EXCLUDE && echo $EXCLUDE) .deploy)\
-	#	$(rsync_include $(test -v INCLUDE && echo $INCLUDE))\
-	#	"$src" "kico:$dest"
 	{	rsync_include $(test -v INCLUDE && echo $INCLUDE)
 		rsync_exclude $(test -v EXCLUDE && echo $EXCLUDE):.deploy
 		rsync_args
