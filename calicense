@@ -22,4 +22,6 @@ sed "
 	/<\/*pre/d;
 	s/\[year\]/$YEAR/;
 	s/\[fullname\]/$FULLNAME/
+	s/&lt;/</g
+	s/&gt;/>/g
 "
