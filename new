@@ -24,13 +24,13 @@ make_new() {
 	test -e "$template" || template="$(
 		ldir "$template_lib" |
 		grep "$(extension $1)$" |
-		umenu
+		umenu -q
 	)"
 
 	#pick any file from the template library
 	test -e "$template" || template="$(
 		ldir "$template_lib" |
-		umenu
+		umenu -q
 	)"
 
 	test -e "$template" || {
