@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# The destination when deployed to root. Can usually be left blank if deploying to/from an xdg home dir and its root equivalent, or if the source and target are of the same type (either root or user)
+ROOTDIR=/scripts
+# Same as above except for user targets
+#USERDIR=
+
+# Colon (:) seperated values for files to exclude
+EXCLUDE=".git"
+# Colon (:) seperated values for files to exempt from the above exclusion
+#INCLUDE=
+
