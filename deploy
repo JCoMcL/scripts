@@ -6,7 +6,7 @@ finddeploy() {
 }
 
 rsync_args() {
-	echo "--recursive --update --executability --human-readable"
+	echo "--recursive --update --executability --human-readable --progress"
 }
 
 build_longargs(){
