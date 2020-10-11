@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# pours out the contents of a directory into the parent directory and delete the empty directory
+# pours out the contents of a directory into the parent directory and deletes the empty directory
 
 for DIR in $@; do
 	if [ -d $DIR ]; then
