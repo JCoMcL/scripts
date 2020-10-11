@@ -1,0 +1,29 @@
+#!/bin/zsh
+
+INPUT=$1
+INPUTNAME=$(echo $INPUT | sed 's/.pdf$//')
+
+offset=0 #62
+
+set -x
+pdfinfo $INPUT | awk '/^Page size/{ print $3" "$5/2+('$offset')" "$5/2-('$offset'); }' | read height lwidth rwidth
+echo $height $lwidth $rwidth
+set +x
+gs \
+	-o $INPUTNAME-left.pdf \
+	-sDEVICE=pdfwrite \
+	-g"$lwidth"0x"$height"0\
+	-c "<</PageOffset [0 0]>> setpagedevice" \
+	-f $INPUT
+
+gs \
+	-o $INPUTNAME-right.pdf \
+	-sDEVICE=pdfwrite \
+	-g"$rwidth"0x"$height"0\
+	-c "<</PageOffset [-$lwidth 0]>> setpagedevice" \
+	-f $INPUT
+
+gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -dSAFER -sOutputFile=$INPUTNAME-div.pdf $INPUTNAME-left.pdf $INPUTNAME-right.pdf &&
+rm $INPUTNAME-left.pdf $INPUTNAME-right.pdf
+
+
