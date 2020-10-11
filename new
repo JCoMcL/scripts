@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 test $UID -eq 0 &&
 	template_lib="$XDG_DATA_DIRS/new" ||
@@ -24,13 +24,13 @@ make_new() {
 	test -e "$template" || template="$(
 		ldir "$template_lib" |
 		grep "$(extension $1)$" |
-		umenu -q
+		umenu -s
 	)"
 
 	#pick any file from the template library
 	test -e "$template" || template="$(
 		ldir "$template_lib" |
-		umenu -q
+		umenu -s
 	)"
 
 	test -e "$template" || {
