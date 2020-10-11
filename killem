@@ -1,0 +1,10 @@
+#!/bin/sh
+
+killall $1 ||
+kill $(pgrep -i $1) && {
+	sleep 0.2s
+	pgrep -i $1 && {
+		kill -s kill $(pgrep -i $1)
+	}
+}
+
