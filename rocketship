@@ -1,0 +1,20 @@
+#!/bin/bash
+
+type() {
+	xset r off
+	xdotool type --delay $INTERVAL --clearmodifiers "$@"
+	xset r on
+}
+
+rng() {
+	shuf -i 200-2500 -n 1
+}
+
+INTERVAL=400
+type "8==============D"
+while true; do
+	INTERVAL=`rng`
+	type "~~~~~~~~"
+done
+# rocketship 
+
