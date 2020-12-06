@@ -1,6 +1,7 @@
 #!/bin/sh
 FILENAME=$SCREENSHOTS/$1"$(date +%F_%T).png"
 cat /dev/stdin > $FILENAME
+xclip -selection clipboard -target image/png -i "$FILENAME"
 ln -sf $FILENAME "$HOME/shot.png"
 notify-send "Screenshot" "$FILENAME" -i $FILENAME
 
