@@ -1,0 +1,11 @@
+#!/bin/sh
+
+AOC="https://adventofcode.com/$(date +%Y)"
+test -n "$1" && DAY=$1 || DAY=$(date +%e | sed 's/ //')
+URL="$AOC/day/$DAY"
+
+mkdir -p ~/aoc/$DAY
+#curl -b ~/aoc/adventofcode.com_cookies.txt "$URL"
+$BROWSER "$URL" &
+
+
