@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 
 INPUT=$1
 INPUTNAME=$(echo $INPUT | sed 's/.pdf$//')

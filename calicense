@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 # command line license picker using github's choosealicense.com and umenu. Might be branched off into it's own repo at some point, complete with config files and local caching.
 

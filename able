@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 #adds or removes a "disabled" extension to a file - useful for configuration files or udev rules
 

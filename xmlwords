@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 grep -Eo ">[A-Z]?[a-z]+ ?<" | tr '[A-Z]' '[a-z]' | tr -d -c '[a-z\n]' 
 

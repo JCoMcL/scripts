@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 # pours out the contents of a directory into the parent directory and deletes the empty directory
 

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 FILENAME=$SCREENSHOTS/$1"$(date +%F_%T).png"
 cat /dev/stdin > $FILENAME
 xclip -selection clipboard -target image/png -i "$FILENAME"

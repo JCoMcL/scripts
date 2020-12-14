@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 mv $1 $2
 ln -s $2/`basename $1` $1

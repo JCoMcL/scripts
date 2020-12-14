@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 conf="/etc/X11/xorg.conf.d/21-intel-prime.conf"
 test -e "$conf.disabled" &&
 	echo "Switching to integrated graphics" ||

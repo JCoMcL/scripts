@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 test $UID -eq 0 &&
 	template_lib="$XDG_DATA_DIRS/new" ||

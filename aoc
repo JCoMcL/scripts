@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 AOC="https://adventofcode.com/$(date +%Y)"
 test -n "$1" && DAY=$1 || DAY=$(date +%e | sed 's/ //')

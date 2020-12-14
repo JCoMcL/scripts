@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 label="Arch Linux"
 kernel_params=$( tr '\n' ' ' < /etc/kernel-params.conf )
 efibootmgr -B -b $(efibootmgr | grep "$label" | awk -F '' '{print $5 $6 $7 $8}')

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 #TODO eliminate the loop and take advantage of stream editing
 ls | while read -r FILE; do
