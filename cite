@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+link="$(xclip -sel clipboard -o)"
+echo "[] $(curl "$link" | perl -l -0777 -ne 'print $1 if /<title.*?>\s*(.*?)\s*<\/title/si') [Online]. Available: $link. [Accessed: $(date "+%B %d %Y")]." | xclip -sel clipboard
+
+
