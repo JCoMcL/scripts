@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+ffmpeg -video_size $(xrandr -q | awk 'NR==1{print $8"x"$10}' | tr -d ',') -framerate 20 -f x11grab -i :0 -f pulse -ac 2 -i default "$SCREENSHOTS/screenrec.mp4"
+
