@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+find_executables() {
+	find -P "$1" ! -type l ! -type d -executable
+}
+find_pkg_executables() {
+	for dir in $(find /nix/store -maxdepth 1 -type d -name "*$1*"); do
+		find_executables $dir
+	done
+}
+dedup() {
+	awk '!seen[$0]++'
+}
+
+find_pkg_executables "$1" | xargs basename -a | dedup

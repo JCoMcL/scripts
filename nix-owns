@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+readlink $(which "$1") | sed -E "s@.*[a-z0-9]{32}-([^/]*).*@\1@"
+
