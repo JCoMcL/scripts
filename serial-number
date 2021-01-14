@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+dmidecode -t system | grep Serial | awk '{print $3}'
+
