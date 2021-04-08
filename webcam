@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+list_cameras(){
+	v4l2-ctl --list-devices |
+	sed -En 's@\s*/dev/media([0-9]*)@\1@p' |
+	awk '{print "/dev/video"($1 * 2)}'
+}
+
+killem mpv
+
+for cam in $(list_cameras); do
+	mpv av://v4l2:$cam --profile=low-latency --untimed &
+done
+
