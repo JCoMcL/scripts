@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+. git-utils
+
+go_to_git_base && {
+	git_staged > /dev/null || git add .
+	git commit -m "`echo "$@"`" #no idea why this strangeness is required
+}
+
