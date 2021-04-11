@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+test -n "$1" && {
+	blkid |
+	grep -P "$1" |
+	sed -r "s/^.*UUID=\"([^\"]*).*$/\1/;q"
+} ||
+	blkid |
+	sed -r "s/UUID=\"([^\"]*).*$/\1/"
+
