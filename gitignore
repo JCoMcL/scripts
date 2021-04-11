@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+go_to_git_base && {
+	for item in "$@"; do
+		echo "$item" >> .gitignore
+	done
+}
+
