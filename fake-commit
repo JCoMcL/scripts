@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+# Adds new commit roughly 3 days after the previous commit
+# It ends up being easier to just change the script if I want a different time, rather than using arguments
+
+. git-utils
+
+go_to_git_base && {
+	git_staged > /dev/null || git add .
+	git commit --date=$(($(last_commit_time)+252000+($RANDOM%14400))) -m "`echo "$@"`"
+}
+
+
