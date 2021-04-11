@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+
+is_git_base() {
+	test -n "$1" && testpath="$@" || testpath="."
+	test -e $(realpath "$testpath")/.git
+}
+
+go_to_git_base() {
+	while ! is_git_base && [ `pwd` != "/" ]; do
+		cd ..
+	done
+	is_git_base #exit with error if not in git base
+}
+	
+git_staged() {
+	#list staged files, error if empty
+	git diff --cached --name-only | grep .
+}
+
+last_commit_time() {
+	git show --pretty=format:"%at" HEAD | head -n 1
+}
+
