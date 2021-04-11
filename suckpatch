@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+set -e
 
 if [ -z "$1" ] ; then
 	app=`basename \`pwd\`` #name of current directory
@@ -25,6 +26,7 @@ patchsite=$(curl -s $site$patch/)
 curl $site$patch/$(echo $patchsite | grep -o -P "\"$app-.+?\.diff" | tr -d "\"" | dmenu) > "$patch.diff"
 
 git apply $patch.diff
+rm $patch.diff
 git add .
-git commit -m $patch
+git commit -m $patch 
 
