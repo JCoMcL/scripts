@@ -1,4 +1,9 @@
 #!/usr/bin/env sh
 
-# TEMP 
+_TEMP() {
+}
+
+for f in $@; do
+	_TEMP "$f"
+done
 
