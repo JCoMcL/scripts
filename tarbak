@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+timecode() {
+	date "+%Y-%m-%d-%H%M%S"
+}
+
+tar -czf "$1$(timecode).tar.gz" $1
+
