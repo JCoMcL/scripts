@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+enw() {
+	$TERM $EDITOR $1 2>/dev/null >/dev/null
+	disown
+}
+
+for f in $@; do
+	(enw "$f") &
+done
+
