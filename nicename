@@ -9,7 +9,8 @@ ls | while read -r FILE; do
 			s/jpeg/jpg/;
 			y/ _/--/;
 			s/--[-]*/-/g;
-			s/^-//
+			s/^-//;
+			s/://g
 		'|
 		tr -d \'\"
 	`
