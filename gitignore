@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+. git-utils
+
 go_to_git_base && {
 	for item in "$@"; do
 		echo "$item" >> .gitignore
