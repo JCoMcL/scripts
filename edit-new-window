@@ -1,8 +1,7 @@
 #!/usr/bin/env sh
 
 enw() {
-	$TERM $EDITOR $1 2>/dev/null >/dev/null
-	disown
+	setsid $TERM $EDITOR $1 2>/dev/null >/dev/null
 }
 
 for f in $@; do
