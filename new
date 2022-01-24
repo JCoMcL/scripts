@@ -17,8 +17,7 @@ nextension() {
 
 ldir() { find "$1" -maxdepth 1 ! -path "$1";}
 
-make_new() {
-	set -x
+find_template() {
 	template="$(dirname "$1")/.TEMP"
 
 	#pick a file from the template library with a matching extension
@@ -34,10 +33,18 @@ make_new() {
 		umenu -s
 	)"
 
-	test -e "$template" || {
+	test -e "$template" && echo "$template" || {
 		echo "Error, no template files found" >&2
 		exit 1
 	}
+}
+
+edit_template() {
+	$EDITOR "$(find_template $1)"
+}
+
+make_new() {
+	template=$(find_template $1)
 
 	test -e "$1" || {
 		cp $template $1 #ensures that permissions are copied
@@ -47,7 +54,9 @@ make_new() {
 	$EDITOR "$1"
 }
 
-if [ -n "$1" ]; then
+if [ "$1" = '-e' ]; then
+	edit_template "$2"
+elif [ -n "$1" ]; then
 	make_new "$1"
 elif [ -n "`xclip -selection clipboard -o`" ]; then
 	make_new "`xclip -selection clipboard -o`"
