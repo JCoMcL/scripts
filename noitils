@@ -1,0 +1,65 @@
+#!/usr/bin/env sh
+
+test -z "$STEAM_DIR" && STEAM_DIR="~/.local/share/steam"
+NOITAPATH="$STEAM_DIR/steamapps/compatdata/881100/pfx/drive_c/users/steamuser/AppData/LocalLow/Nolla_Games_Noita"
+test -d "$NOITAPATH" || {
+	echo "could not find Noita directory at:
+	$NOITAPATH" >&2
+	exit 1
+}
+
+select_save() {
+	ls $NOITAPATH | {
+		test -n "$1" &&
+		( grep $1 | umenu -s ) ||
+		umenu -s
+	}
+}
+
+is_noita_running() {
+	pgrep noita.exe >/dev/null
+}
+
+wait_until_noita_closes() {
+	is_noita_running && {
+		echo -n "waiting for Noita to close"
+		sleep 1
+		while is_noita_running; do
+			echo -n '.'
+			sleep 1
+		done
+		echo
+	}
+}
+
+load() {
+	SAVE="$(select_save $1)"
+	cd "$NOITAPATH"
+	wait_until_noita_closes
+	rm -rf save00.bak
+	mv save00 save00.bak
+	cp -rf "$SAVE" save00
+	echo "loaded $SAVE"
+}
+
+save() {
+	test -n "$1" &&
+		SAVENAME="$1" || {
+			echo -n "name of new save: ";
+			read SAVENAME
+		}
+	cd "$NOITAPATH"
+	wait_until_noita_closes
+	cp -r save00 "$SAVENAME"
+	echo "saved $SAVENAME"
+}
+
+if [ "$1" = browse ]; then
+	lf $NOITAPATH
+elif [ "$1" = save ]; then
+	save $2
+elif [ "$1" = load ]; then
+	load $2
+elif [ "$1" = restore ]; then
+	load save00.bak
+fi
