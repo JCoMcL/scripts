@@ -54,6 +54,22 @@ save() {
 	echo "saved $SAVENAME"
 }
 
+get_latest_recording() {
+	find "$NOITAPATH/save_rec/screenshots_animated" | sort | tail -n 1
+}
+
+gif_to_webm() {
+	name="$(basename $1 | sed 's/.gif$//')"
+	ffmpeg -i "$1" "$name.webm"
+}
+
+daily_death() {
+	mkdir -p ~/daily-death
+	cd ~/daily-death
+	gif_to_webm "$(get_latest_recording)"
+}
+
+
 if [ "$1" = browse ]; then
 	lf $NOITAPATH
 elif [ "$1" = save ]; then
@@ -62,4 +78,6 @@ elif [ "$1" = load ]; then
 	load $2
 elif [ "$1" = restore ]; then
 	load save00.bak
+elif [ "$1" = 'daily-death' ]; then
+	daily_death
 fi
