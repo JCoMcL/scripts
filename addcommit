@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+git add "$@"
+echo Commit message:
+read cmsg
+commit "$cmsg"
+
