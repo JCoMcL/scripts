@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+X=1720
+Y=720
+OUTPUT=DP-4.1
+
+modeline=$(cvt $X $Y 60 | sed '1d;s/^Modeline //')
+modename=$(echo "$modeline" | awk -F \" '{print $2}')
+
+xrandr --newmode $modeline
+xrandr --addmode $OUTPUT $modename
+xrandr --o $OUTPUT --mode $modename
+
