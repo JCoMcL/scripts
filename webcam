@@ -6,9 +6,16 @@ list_cameras(){
 	awk '{print "/dev/video"($1 * 2)}'
 }
 
-killem mpv
+open_camera(){
+	mpv av://v4l2:$1 --profile=low-latency --untimed
+}
 
-for cam in $(list_cameras); do
-	mpv av://v4l2:$cam --profile=low-latency --untimed &
-done
+killem mpv
+open_camera `list_cameras | umenu`
+
+#for cam in $(list_cameras); do
+	#open_camera $cam  &
+#done
+
+
 
