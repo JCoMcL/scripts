@@ -1,10 +1,9 @@
 #!/usr/bin/env sh
-
 # pours out the contents of a directory into the parent directory and deletes the empty directory
 
-for DIR in $@; do
-	if [ -d $DIR ]; then
-		mv -n $DIR/* `dirname $DIR`
-		rmdir $DIR
+for DIR in "$@"; do
+	if [ -d "$DIR" ]; then
+		find "$DIR" -maxdepth 1 -not -path "$DIR" -execdir mv -n '{}' .. \;
+		rmdir "$DIR"
 	fi
 done
