@@ -1,5 +1,2 @@
-git checkout config
-$EDITOR config.def.h
-git add .
-git commit -m config
 
+$EDITOR "$(find $HOME/.config/$1 -type f -maxdepth 1 | head -n 1)"
