@@ -1,0 +1,32 @@
+#!/usr/bin/env sh
+# ₮H€ QUI₡₭ ฿₽O₩₦ FOX JU₼₱€₫ OV€₽ ₮H€ £AZ¥ ₫OG
+
+sedtr() {
+	cat << EOF | awk -F "" '{print "s/"$1"/"$2"/g"}'
+b฿
+c₡
+d₫
+e€
+k₭
+l£
+m₼
+n₦
+p₱
+r₽
+s$
+t₮
+w₩
+y¥
+EOF
+}
+#a؋
+
+upper() {
+	tr abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ
+}
+
+lower() {
+	tr ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz
+}
+
+echo $@ | lower | sed "$(sedtr)" | upper
