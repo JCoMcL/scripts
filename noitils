@@ -8,6 +8,11 @@ test -d "$NOITAPATH" || {
 	exit 1
 }
 
+die(){
+	echo $@ 1>&2
+	exit 1
+}
+
 select_save() {
 	ls $NOITAPATH | {
 		test -n "$1" &&
@@ -35,6 +40,7 @@ wait_until_noita_closes() {
 load() {
 	SAVE="$(select_save $1)"
 	cd "$NOITAPATH"
+	test -d "$SAVE" || die "$SAVE not a valid save"
 	wait_until_noita_closes
 	rm -rf save00.bak
 	mv save00 save00.bak
@@ -54,19 +60,29 @@ save() {
 	echo "saved $SAVENAME"
 }
 
+get_recordings_chronological() {
+	find "$NOITAPATH/save_rec/screenshots_animated" -name '*.gif' | sort
+}
+
 get_latest_recording() {
-	find "$NOITAPATH/save_rec/screenshots_animated" | sort | tail -n 1
+	 get_recordings_chronological | tail -n 1
 }
 
 gif_to_webm() {
 	name="$(basename $1 | sed 's/.gif$//')"
 	ffmpeg -i "$1" "$name.webm"
+	rm "$1"
 }
 
 daily_death() {
 	mkdir -p ~/daily-death
 	cd ~/daily-death
 	gif_to_webm "$(get_latest_recording)"
+}
+
+reset_daily_run() {
+	rm "$NOITAPATH/save00/stats/_last_daily_run_played.xml"
+
 }
 
 
@@ -78,6 +94,10 @@ elif [ "$1" = load ]; then
 	load $2
 elif [ "$1" = restore ]; then
 	load save00.bak
+elif [ "$1" = 'convert' ]; then
+	gif_to_webm $(get_recordings_chronological | umenu)
 elif [ "$1" = 'daily-death' ]; then
 	daily_death
+elif [ "$1" = 'rerun' ]; then
+	reset_daily_run
 fi
