@@ -3,7 +3,7 @@
 _TEMP() {
 }
 
-for f in $@; do
+for f in "$@"; do
 	_TEMP "$f"
 done
 
