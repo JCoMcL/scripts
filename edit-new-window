@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 enw() {
-	setsid $TERM $EDITOR $1 2>/dev/null >/dev/null
+	newterm $EDITOR $1
 }
 
 for f in $@; do
