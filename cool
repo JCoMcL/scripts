@@ -1,9 +1,33 @@
 #!/usr/bin/env sh
-xrandr --output DP-0 --auto --scale 1.5x1.5 --pos 480x0 --rotate normal --primary --output eDP-1-1 --auto --mode 3840x2160 --pos 0x1620
-xwallpaper --zoom ~/media/images/internet-oddities/pape-temple.jpg
-xinput map-to-output 'ATML1000:00 03EB:8A79' eDP-1-1
-xinput map-to-output 'Wacom HID 16C Pen eraser' eDP-1-1
-xinput map-to-output 'Wacom HID 16C Pen stylus' eDP-1-1
+
+goodread(){
+	while read line; do
+		echo "$1=$line"
+		shift || break
+	done
+}
+xrandr --setprovideroutputsource modesetting NVIDIA-0
+xrandr --auto
+
+eval $(
+	xrandr --listmonitors |
+	sed -E '1d;s/ .+? .+? .+? //' |
+	sort |
+	goodread edisplay idisplay
+)
+
+xrandr --output $edisplay --auto --rotate normal --primary --output $idisplay --auto --mode 3840x2160 --below $edisplay
+
+xwallpaper --zoom ~/media/images/internet-oddities/pape-goro-like.png
+xinput map-to-output 'ATML1000:00 03EB:8A79' $idisplay
+xinput map-to-output 'Wacom HID 16C Pen eraser' $idisplay
+xinput map-to-output 'Wacom HID 16C Pen stylus' $idisplay
 xinput --set-prop 'Wacom HID 16C Pen stylus' 'Wacom button action 1' 1572867
 xinput --set-prop 'Wacom HID 16C Pen eraser' 'Wacom button action 0' 1572866
 xinput --set-prop 'Wacom HID 16C Pen stylus' 'Wacom button action 0' 1572865
+
+xinput --list | sed -E '1d;/keyboard/{d;q};s/.*id=([0-9]+).*/\1/' | while read pointer_id; do
+	xinput set-prop $pointer_id 'Device Accel Constant Deceleration' 2
+done
+
+xset r rate 180 50

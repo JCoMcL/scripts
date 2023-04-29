@@ -1,7 +1,10 @@
 #!/usr/bin/env sh
 
-{  xrandr --output DP-0 --scale 1x1 --mode 1920x1080 2>&1 | grep -s ignoring > /dev/null;} &&
+set -x
+
 {  xrandr --output eDP-1 --mode 1920x1080 2>&1 | grep -s ignoring > /dev/null;} &&
+{  xrandr --output DP-0 --scale 1x1 2>&1 | grep -s ignoring > /dev/null;} &&
+{  xrandr --output DP-2 --scale 1x1 2>&1 | grep -s ignoring > /dev/null;} &&
 {  xrandr --output eDP-1-1 --mode 1920x1080;}
 
 killall picom
