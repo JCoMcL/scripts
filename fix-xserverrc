@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+cd /etc/X11/xinit
+sed 's/-dpi [0-9]*//' xserverrc > xserverrc.1
+able xserverrc
+mv xserverrc.1 xserverrc

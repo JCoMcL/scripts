@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -dSAFER -sOutputFile=combined.pdf $@
+

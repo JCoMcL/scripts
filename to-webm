@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+_to_webm() {
+	name="$(basename $1 | sed 's/.gif$//')"
+	ffmpeg -i "$1" "$name.webm"
+	rm "$1"
+}
+
+for f in "$@"; do
+	_to_webm "$f"
+done
+

@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+set -x
+
+for f in $(ls); do
+	xwallpaper --tile $f
+	read newname
+	echo $newname
+	test -n "$newname" && mv $f $newname
+done
+

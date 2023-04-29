@@ -1,0 +1,28 @@
+#!/usr/bin/env sh
+set -x
+
+target_size=6M
+
+
+bits() {
+    echo $(($(echo "$1" | sed 's/[kK]$/000/;s/[mM]$/000000/;s/[gG]$/000000000/') * 8))
+}
+
+duration() {
+	exiftool "$1" |
+	awk '/^Duration/{print $3}' |
+	awk -F ':' '{print $1*60*60 + $2*60 + $3}'
+}
+
+bitrate() {
+    echo $(( `bits $2` / `duration "$1"` ))
+}
+
+_compress_video() {
+	ffmpeg -i "$1" -b $(bitrate "$1" $target_size) "_$1"
+}
+set -x
+for f in "$@"; do
+	_compress_video "$f"
+done
+

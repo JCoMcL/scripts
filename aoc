@@ -4,8 +4,18 @@ AOC="https://adventofcode.com/$(date +%Y)"
 test -n "$1" && DAY=$1 || DAY=$(date +%e | sed 's/ //')
 URL="$AOC/day/$DAY"
 
+die() {
+	echo $@ >&2
+	exit 1
+}
+curlcmd() {
+	test -n "$SESSION" || die "Set the SESSION variable to your session ID"
+	curl $@ -H "cookie: session=$SESSION"
+}
+
 mkdir -p ~/aoc/$DAY
-#curl -b ~/aoc/adventofcode.com_cookies.txt "$URL"
-$BROWSER "$URL" &
+cd ~/aoc/$DAY
+curlcmd "$URL/input" > input
+$BROWSER "$URL"&disown
 
 

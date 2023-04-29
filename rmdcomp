@@ -1,4 +1,4 @@
-#!/usr/bin/env sh -x
+#!/usr/bin/env sh
 
 render() {
 	echo "require(rmarkdown); render('$1')" | R --vanilla

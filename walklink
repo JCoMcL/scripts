@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+_walklink() {
+	echo $1
+	next=`readlink $1` && _walklink $next
+}
+
+for f in $@; do
+	test -f "$f" || f=$(which $f) || exit 1
+	_walklink "$f"
+done
+
