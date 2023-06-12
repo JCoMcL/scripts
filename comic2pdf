@@ -1,0 +1,32 @@
+#!/usr/bin/env sh
+
+extract_in_subdir(){
+	d="$1.temp"
+	mkdir "$1".temp || exit
+	case "$1" in
+		*.rar|*.cbr) unrar x "$1" -op "$d" -inul;;
+		*.zip|*.cbz) unzip -qq "$1" -d "$d";;
+	esac
+	echo $d
+}
+
+process_images(){
+	test -n "$1" && d="$1" || d="`pwd`"
+	chmod --recursive +w "$d"
+	find "$d" -type f | sed 's/ /\\ /g' | xargs mogrify -auto-level #-contrast -contrast
+}
+
+replace_extension(){
+	echo $1 | sed -E 's/(\..*)?$/.'"$2"'/'
+}
+
+_manga2pdf() {
+	work_dir=$(extract_in_subdir "$1") || exit
+	#process_images "$work_dir"
+	find "$work_dir" -type f -print0 | sort -z | img2pdf --from-file - --output  "$(replace_extension "$1" pdf)" && rm -rf "$work_dir"
+}
+
+for f in "$@"; do
+	_manga2pdf "$f"
+done
+
