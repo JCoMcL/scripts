@@ -1,11 +1,8 @@
 #!/usr/bin/env sh
-
-set -x
-
 _killem() {
 	kill $@ &&
 	( sleep 1s && kill -s kill $@ )
 }
-killall $1 || _killem $(pgrep -i $1 || pgrep -if $1 | sed -E /$(pgrep -if killem | tr '\n' '|')/d)
+_killem $(pgrep -i $1 || pgrep -if $1 | sed -E /$(pgrep -if killem | tr '\n' '|')/d)
 
 
