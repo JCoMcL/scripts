@@ -1,10 +1,10 @@
 #!/usr/bin/env sh
 
 enw() {
-	newterm $EDITOR $1
+	newterm $EDITOR "$1"
 }
 
-for f in $@; do
+for f in "$@"; do
 	(enw "$f") &
 done
 

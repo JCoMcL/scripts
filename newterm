@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 
-setsid $TERM $@ 2>/dev/null >/dev/null &
+setsid $TERM "$@" 2>/dev/null >/dev/null &
 
