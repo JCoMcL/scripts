@@ -1,24 +1,31 @@
 #!/usr/bin/env sh
 
-goodread(){
-	while read line; do
-		echo "$1=$line"
-		shift || break
-	done
-}
 xrandr --setprovideroutputsource modesetting NVIDIA-0
 xrandr --auto
 
-eval $(
+idisplay=`xrandr --listmonitors | grep -o 'eDP[-1]*' | head -n1`
+edisplays="$(
 	xrandr --listmonitors |
 	sed -E '1d;s/ .+? .+? .+? //' |
-	sort |
-	goodread edisplay idisplay
-)
+	grep -v "$idisplay" |
+	tr '\n' ' '
+)"
 
-xrandr --output $edisplay --auto --rotate normal --primary --output $idisplay --auto --mode 3840x2160 --below $edisplay
+xrandr --output $idisplay --auto --mode 3840x2160
+arrange() {
+	test -z "$1" && return
+	d0=$1
+	xrandr --output $1 --auto --rotate normal --primary --above $idisplay
+	shift
+	test -z "$1" && return
+	xrandr --output $1 --auto --rotate normal --right-of $d0
+	shift
+	test -z "$1" && return
+	xrandr --output $1 --auto --rotate normal --left-of $d0
+}
+arrange $edisplays
+xwallpaper --center ~/media/images/wallpapers/boreal.jpg
 
-xwallpaper --zoom ~/media/images/internet-oddities/pape-goro-like.png
 xinput map-to-output 'ATML1000:00 03EB:8A79' $idisplay
 xinput map-to-output 'Wacom HID 16C Pen eraser' $idisplay
 xinput map-to-output 'Wacom HID 16C Pen stylus' $idisplay
