@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+_re_encode() {
+	ffmpeg -hwaccel auto -i "$1" -c:v libx264 -map 0 -tune animation -crf 27  "~$1" 
+}
+
+for f in "$@"; do
+	_re_encode "$f"
+done
+

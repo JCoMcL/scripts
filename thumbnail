@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+
+#convert a video to an audio file with thumbnail
+
+audio_type() {
+	ffprobe "$1" -loglevel error -select_streams a -show_entries stream=codec_name | sed -n '2s/^.*=//p'
+}
+art() {
+    	out="${1%.*}.png"
+	ffmpeg -y -loglevel error -i "$1" -ss 0:0:5 -frames:v 1 "$out"
+	echo $out
+}
+_thumbnail() {
+    	art="$(art "$1")"
+	ffmpeg -i "$1" -i "$art"  -map 0:a:0 -c:a copy -metadata:s:v comment="Cover (front)" "${1%.*}.$(audio_type "$1")"
+	rm "$art"
+}
+
+for f in "$@"; do
+	_thumbnail "$f"
+done
+
