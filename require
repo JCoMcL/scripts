@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+_require() {
+	echo $1 >> requirements
+}
+
+for f in "$@"; do
+	_require "$f"
+done
+
