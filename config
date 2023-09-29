@@ -1,2 +1,1 @@
-
 $EDITOR "$(find $HOME/.config/$1 -type f -maxdepth 1 | head -n 1)"
