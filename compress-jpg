@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+_compress_jpg() {
+    convert "$1" -sampling-factor 4:2:0 -strip -quality 85 -interlace JPEG -colorspace RGB "~$1"
+
+}
+
+for f in "$@"; do
+	_compress_jpg "$f"
+done
+
