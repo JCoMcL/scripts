@@ -85,6 +85,10 @@ reset_daily_run() {
 
 }
 
+play() {
+	steam steam://rungameid/881100
+}
+
 
 if [ "$1" = browse ]; then
 	lf $NOITAPATH
@@ -100,4 +104,6 @@ elif [ "$1" = 'daily-death' ]; then
 	daily_death
 elif [ "$1" = 'rerun' ]; then
 	reset_daily_run
+elif [ "$1" = 'play' ]; then
+	play
 fi
