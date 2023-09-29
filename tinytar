@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+_tinytar() {
+	tar cvf - "$1" | xz --verbose -9 > "$1.tar.xz"
+	
+}
+
+for f in "$@"; do
+	_tinytar "$f"
+done
+
