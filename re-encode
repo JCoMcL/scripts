@@ -1,7 +1,8 @@
 #!/usr/bin/env sh
 
 _re_encode() {
-	ffmpeg -hwaccel auto -i "$1" -c:v libx264 -map 0 -tune animation -crf 27  "~$1" 
+    NAME="$(dirname "$1")/~$(basename "$1")"
+    ffmpeg -hwaccel auto -i "$1" -c:v libx264 -map 0 -c:s copy -c:a copy -tune animation -crf 25  "$NAME" 
 }
 
 for f in "$@"; do
