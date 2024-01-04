@@ -1,0 +1,26 @@
+#!/bin/sh -e
+
+test -e "$1"
+DISK="$1"
+
+hdparm -I $DISK | grep "not\s*frozen" || (
+	echo "Drive security is frozen! Cannot proceed"
+	echo "Suspending the system may fix this issue"
+	exit 1
+)
+
+passwd="PaSWorD"
+hdparm --user-master u --security-set-pass "$passwd" $DISK
+hdparm -I $DISK | grep "not\s*enabled" && (
+	echo "Failed to enable drive security! Cannot proceed"
+	exit 1
+)
+
+echo "Last chance to check that this is the correct drive"
+ls -lh $DISK
+echo "press Enter to continue"
+read
+
+hdparm --user-master u --security-erase "$passwd" $DISK
+
+hdparm -I $DISK

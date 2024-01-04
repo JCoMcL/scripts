@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -e
+
+test -e "$1"
+DISKID="$1"
+
+partedcmd() {
+	parted "$DISKID" -- $@
+}
+
+partedcmd mklabel gpt
+partedcmd mkpart primary 1048576s 1930428415s
+partedcmd mkpart primary linux-swap 1930428416s 1953523711s 
+partedcmd mkpart ESP fat32 2048s 1048575s 
+partedcmd set 3 esp on
+
+echo "verify that boot, primary, and swap are number 3, 1, and 2 respectively"
+partedcmd print

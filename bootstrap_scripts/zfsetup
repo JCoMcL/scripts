@@ -1,0 +1,31 @@
+#!/bin/sh
+set  -e -x
+
+test -e "$1"
+DISK="$1-part1"
+
+zpool create -f -O mountpoint=none -O xattr=sa -O compression=lz4 -o ashift=12 -R /mnt pool $DISK
+
+mountpool() {
+	zfs create -o mountpoint=legacy $1
+	mkdir -p /mnt$2
+	mount -t zfs $1 /mnt$2
+}
+
+zfs create -o mountpoint=none pool/keep
+mountpool pool/keep/root /
+mountpool pool/keep/virt /virt
+
+mountpool pool/keep/journal /var/log/journal
+zfs set acltype=posix pool/keep/journal
+
+mountpool pool/keep/home /home
+
+mountpool pool/keep/games /home/jcomcl/games
+
+mountpool pool/keep/media /home/jcomcl/media
+mountpool pool/keep/work /home/jcomcl/work
+
+zfs create -o mountpoint=none -o atime=off pool/auto
+mountpool pool/auto/nix /nix
+

@@ -1,0 +1,12 @@
+#!/bin/sh -e
+
+test -e "$1"
+DISKID="$1"
+
+mkfs.fat -F 32 -n boot "$DISKID-part3"
+mkdir -p /mnt/boot
+mount "$DISKID-part3" /mnt/boot
+
+mkswap -L swap "$DISKID-part2"
+swapon "$DISKID-part2"
+
