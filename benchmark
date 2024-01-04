@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+for i in `seq -s "$IFS" 24`
+    do command time -q -o /dev/stdout --format="%U user %S system %P CPU %e total" $@
+done 2>/dev/null | tee /dev/stderr |
+awk '
+    NR==1{s2=$2; s4=$4; s6=$6; s8=$8}
+    {s1 += $1; s3 += $3; s5 += $5; s7 += $7; n++}
+    END{print s1/n, s2, s3/n, s4, s5/n, s6, s7/n, s8}'
+echo
+
