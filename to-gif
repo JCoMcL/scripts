@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+_to_gif() {
+	name="$(basename $1 | sed 's/\.[a-zA-Z0-9]$//')"
+	ffmpeg -i "$1" flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" "$name.gif"
+	rm "$1"
+}
+
+for f in "$@"; do
+	_to_webm "$f"
+done
+
