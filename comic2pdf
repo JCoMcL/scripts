@@ -23,7 +23,9 @@ replace_extension(){
 _manga2pdf() {
 	work_dir=$(extract_in_subdir "$1") || exit
 	#process_images "$work_dir"
-	find "$work_dir" -type f -print0 | sort -z | img2pdf --from-file - --output  "$(replace_extension "$1" pdf)" && rm -rf "$work_dir"
+	find "$work_dir" -type f -iname '*.jpg' -print0 | sort -z |
+		img2pdf --from-file - --output  "$(replace_extension "$1" pdf)" &&
+		rm -rf "$work_dir"
 }
 
 for f in "$@"; do
