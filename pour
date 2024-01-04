@@ -3,7 +3,7 @@
 
 for DIR in "$@"; do
 	if [ -d "$DIR" ]; then
-		find "$DIR" -maxdepth 1 -not -path "$DIR" -execdir mv -n '{}' .. \;
+		find "$DIR" -maxdepth 1 -mindepth 1 -execdir mv -n '{}' .. \;
 		rmdir "$DIR"
 	fi
 done
