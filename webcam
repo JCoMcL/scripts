@@ -8,6 +8,7 @@ list_cameras(){
 
 open_camera(){
 	mpv av://v4l2:$1 --profile=low-latency --untimed
+	#vlc v4l2://:input-slave=alsa://:v4l-vdev="$1"
 }
 
 killem mpv

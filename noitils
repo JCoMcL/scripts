@@ -86,7 +86,7 @@ reset_daily_run() {
 }
 
 play() {
-	steam steam://rungameid/881100
+	steam -nobrowser steam://rungameid/881100
 }
 
 

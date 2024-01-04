@@ -24,7 +24,7 @@ arrange() {
 	xrandr --output $1 --auto --rotate normal --left-of $d0
 }
 arrange $edisplays
-xwallpaper --center ~/media/images/wallpapers/boreal.jpg
+xwallpaper --no-randr --center ~/media/images/wallpapers/pscrn2023-12-02_154008.png
 
 xinput map-to-output 'ATML1000:00 03EB:8A79' $idisplay
 xinput map-to-output 'Wacom HID 16C Pen eraser' $idisplay
