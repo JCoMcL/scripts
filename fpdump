@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+_fpdump() {
+	echo "$1" 1>&2
+	fpcalc "$1" > "$1.fp"
+}
+
+for f in "$@"; do
+	_fpdump "$f"
+done
+
