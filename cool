@@ -3,7 +3,7 @@
 xrandr --setprovideroutputsource modesetting NVIDIA-0
 xrandr --auto
 
-idisplay=`xrandr --listmonitors | grep -o 'eDP[-1]*' | head -n1`
+idisplay=`xrandr --listmonitors | grep -o 'eDP[-12]*' | head -n1`
 edisplays="$(
 	xrandr --listmonitors |
 	sed -E '1d;s/ .+? .+? .+? //' |
