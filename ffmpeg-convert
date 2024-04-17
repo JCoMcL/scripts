@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 _ffmpeg_convert() {
-    ffmpeg -y -loglevel 16 -i "$1" "${1%.*}.$2" </dev/null && #what an annoying bug lol, ffmpeg was fucking with stdin and somehow removed the . from the start of the file
+    ffmpeg -y  -i "$1" "${1%.*}.$2" </dev/null && #what an annoying bug lol, ffmpeg was fucking with stdin and somehow removed the . from the start of the file
     rm "$1"
 }
 

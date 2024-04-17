@@ -89,7 +89,6 @@ play() {
 	steam -nobrowser steam://rungameid/881100
 }
 
-
 if [ "$1" = browse ]; then
 	lf $NOITAPATH
 elif [ "$1" = save ]; then

@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 
-setsid $TERM "$@" 2>/dev/null >/dev/null &
+env --unset=TMUX setsid st "$@" 2>/dev/null >/dev/null &
 

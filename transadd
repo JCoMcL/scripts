@@ -1,5 +1,4 @@
 #!/usr/bin/env sh
-
 # courtesy of Luke Smith
 # Mimeapp script for adding torrent to transmission-daemon, but will also start the daemon first if not running.
 
@@ -7,4 +6,6 @@
 
 pidof transmission-daemon >/dev/null || (transmission-daemon && notify-send "Starting transmission daemon..." && sleep 3 && pkill -RTMIN+7 "${STATUSBAR:-dwmblocks}")
 
-transmission-remote -a "$@" && notify-send "🔽 Torrent added."
+for f in "$@"; do
+    transmission-remote -a "$f" && notify-send "Torrent added: $f" || notify-send "Error Adding $f"
+done

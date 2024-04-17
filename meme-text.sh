@@ -57,13 +57,13 @@ fi
 
 # run if only top text provided
 if [[ -n $TTEXT ]] && [[ -z $BTEXT ]]; then
-    exec ffmpeg -i "$1" -vf "drawtext=fontfile=${FFILE}:text=${TTEXT}:fontcolor=white:borderw=${BSIZE}:fontsize=${FSIZE}:x=(w-text_w)/2:y=${OFFSET}" -an "$2"
+    exec ffmpeg -i "$1" -c:a copy -vf "drawtext=fontfile=${FFILE}:text=${TTEXT}:fontcolor=white:borderw=${BSIZE}:fontsize=${FSIZE}:x=(w-text_w)/2:y=${OFFSET}" "$2"
 fi
 
 # run if only bottom text provided
 if [[ -z $TTEXT ]] && [[ -n $BTEXT ]]; then
-    exec ffmpeg -i "$1" -vf "drawtext=fontfile=${FFILE}:text=${BTEXT}:fontcolor=white:borderw=${BSIZE}:fontsize=${FSIZE}:x=(w-text_w)/2:y=(h-text_h)-${OFFSET}" -an "$2"
+    exec ffmpeg -i "$1" -c:a copy -vf "drawtext=fontfile=${FFILE}:text=${BTEXT}:fontcolor=white:borderw=${BSIZE}:fontsize=${FSIZE}:x=(w-text_w)/2:y=(h-text_h)-${OFFSET}" "$2"
 fi
 
 # run if both top and bottom text are provided
-ffmpeg -i "$1" -vf "[in] drawtext=fontfile=${FFILE}:text=${TTEXT}:fontcolor=white:borderw=${BSIZE}:fontsize=${FSIZE}:x=(w-text_w)/2:y=${OFFSET}, drawtext=fontfile=${FFILE}:text=${BTEXT}:fontcolor=white:borderw=${BSIZE}:fontsize=${FSIZE}:x=(w-text_w)/2:y=(h-text_h)-${OFFSET} [out]" -an "$2"
+ffmpeg -i "$1" -c:a copy -vf "[in] drawtext=fontfile=${FFILE}:text=${TTEXT}:fontcolor=white:borderw=${BSIZE}:fontsize=${FSIZE}:x=(w-text_w)/2:y=${OFFSET}, drawtext=fontfile=${FFILE}:text=${BTEXT}:fontcolor=white:borderw=${BSIZE}:fontsize=${FSIZE}:x=(w-text_w)/2:y=(h-text_h)-${OFFSET}" "$2"
