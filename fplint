@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+#find -not -name '*.fp' -type f -exec fpdump {} \;
+#rmlint
+jq '.[] | select(.type == "duplicate_file") | select(.is_original|not) .path | match( "(.+?)([.]fp)$" ).captures[0].string' rmlint.json | xargs trash-put
