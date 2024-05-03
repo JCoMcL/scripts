@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# a script that uses ffmpeg to detect the 'black bars' that are sometimes encoded into the video and then
+# reencodes the video stream (only) to remove them and restore the content's original aspect ratio.
+# if the original video codec used was MPEG2 or h264, it also re-encodes it to libx264.
+
+# stolen from paul-chambers/crop-black-bars.sh
+
+input="${1}"
+output="${input%.*}.crop.${input##*.}"
+
+# scan 5 seconds of video, starting one minute in, to autodetect the cropping dimensions to use
+crop=$( ffmpeg -nostats -i "${input}" -ss 60 -t 5 -vf "cropdetect=24:16:0" -f null - 2>&1 \
+      | tail -3 \
+      | sed -n -e 's/^.* \(crop=[0-9:]*\)$/\1/ p' )
+
+echo "${crop}"
+
+codec=$( ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "${input}" )
+
+case ${codec} in
+  mpeg2video)
+    codec=libx264
+    echo "converting mpeg2 to libx264"
+    ;;
+  h264)
+    codec=libx264
+    echo "converting h264 to libx264"
+    ;;
+  *)
+    echo "original codec is ${codec}"
+esac
+
+ffmpeg -i "${input}" -map 0 -c copy -c:v ${codec} -crf 17 -filter:v "${crop}" "${output}"
+
