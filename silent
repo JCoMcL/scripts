@@ -1,3 +1,0 @@
-#!/usr/bin/env -S sh -e
-
-output="$($@ 2>&1 | tee /dev/stderr)"; test -z "$output"
