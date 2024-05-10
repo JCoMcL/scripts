@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+
+# upgrades git push remote from https to ssh
+# it's only meant to work on Gituhb for the moment, but it may work for other providers
+
+transform_url() {
+	if [[ -n "$@" ]]; then
+		printf "%s\n" $@ | transform_url
+	else
+		awk -F/ '$1 ~ /http/ {print "git@" $3 ":" $4 "/" $5}'
+	fi
+}
+
+_git_remote_upgrade() {
+	if [[ -n "$2" ]]; then
+		git remote set-url --push $1 "$2"
+	fi
+}
+
+git status >/dev/null || exit $?
+
+git remote -v | grep '(push)$' | while read name url direction
+	do _git_remote_upgrade $name "`transform_url "$url"`"
+done
+
