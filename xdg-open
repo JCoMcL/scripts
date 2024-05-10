@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# This is a script called linopen, it's a drop-in replacement for xdg-open that isn't bafflingly overcomplicated, and doesn't get it wrong literally every single time.
+# I don't think it was meant to end up here, but it's here now and there's no point removing it since it's in the git history and I still use it.
+# One day I'll my own xdg-open and will no longer have any need for this weird script that has no official home except for a PKGBUILD it used to live inside
+
 _LINOPEN_CFGRC="$XDG_CONFIG_HOME/.linopenrc"
 _LINOPEN_CFGSYS="/etc/linopen.conf"
 _LINOPEN_CFGARG=
