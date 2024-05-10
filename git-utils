@@ -6,10 +6,15 @@ is_git_base() {
 }
 
 go_to_git_base() {
+	wd="`pwd`"
 	while ! is_git_base && [ `pwd` != "/" ]; do
 		cd ..
 	done
-	is_git_base #exit with error if not in git base
+	if ! is_git_base; then
+		cd "$wd"
+		echo "no \".git\" found" >&2
+		false
+	fi
 }
 	
 git_staged() {
