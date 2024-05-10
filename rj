@@ -1,2 +1,2 @@
 mkdir -p .rejects
-mv -i $@ .rejects
+mv -i "$@" .rejects
