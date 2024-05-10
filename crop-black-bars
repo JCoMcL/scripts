@@ -4,16 +4,20 @@
 # reencodes the video stream (only) to remove them and restore the content's original aspect ratio.
 # if the original video codec used was MPEG2 or h264, it also re-encodes it to libx264.
 
-# stolen from paul-chambers/crop-black-bars.sh
+# stolen from paul-chambers/crop-black-bars.sh and modified to actually work
 
 input="${1}"
 output="${input%.*}.crop.${input##*.}"
 
 # scan 5 seconds of video, starting one minute in, to autodetect the cropping dimensions to use
-crop=$( ffmpeg -nostats -i "${input}" -ss 60 -t 5 -vf "cropdetect=24:16:0" -f null - 2>&1 \
-      | tail -3 \
-      | sed -n -e 's/^.* \(crop=[0-9:]*\)$/\1/ p' )
+crop=$( ffmpeg -nostats -i "${input}" -vf "cropdetect=mode=black" -f null - 2>&1 \
+	| tee /dev/stderr \
+      | grep -oE 'crop=[0-9:]+' \
+      | tail -1 )
 
+die() { echo $@ >&2 && exit 1 ;}
+
+test -n "${crop}" || die "cropdetect failed, get in here and fix it!"
 echo "${crop}"
 
 codec=$( ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "${input}" )
