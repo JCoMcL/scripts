@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+
+warn() {
+	echo $@ >&2
+}
+_requirements() {
+	sed 's/#.*$//;/^$/d' "$1"
+	exit 0
+}
+
+requirements_here() {
+	test -f "requirements" && _requirements requirements
+}
+
+requirements_here
+warn no \"requirements\" in working dir
+. git-utils
+if ! is_git_base; then
+	warn "checking git base..."
+	if go_to_git_base; then
+		requirements_here || warn no \"requirements\" in git base either
+	fi
+fi
+
+

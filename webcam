@@ -11,12 +11,11 @@ open_camera(){
 	#vlc v4l2://:input-slave=alsa://:v4l-vdev="$1"
 }
 
-killem mpv
 open_camera `list_cameras | umenu`
 
-#for cam in $(list_cameras); do
-	#open_camera $cam  &
-#done
+for cam in $(list_cameras); do
+	open_camera $cam  &
+done
 
 
 

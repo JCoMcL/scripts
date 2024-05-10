@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
 
-
 FILENAME="$1$(date +%F_%H%M%S).png"
 test -e "$SCREENSHOTS" &&
 	FILENAME="$SCREENSHOTS/$FILENAME"

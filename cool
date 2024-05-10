@@ -11,7 +11,7 @@ edisplays="$(
 	tr '\n' ' '
 )"
 
-xrandr --output $idisplay --auto --mode 3840x2160
+xrandr --output $idisplay --auto
 arrange() {
 	test -z "$1" && return
 	d0=$1
@@ -24,15 +24,14 @@ arrange() {
 	xrandr --output $1 --auto --rotate normal --left-of $d0
 }
 arrange $edisplays
-#xwallpaper --no-randr --center ~/media/images/wallpapers/DSC0510\ ladder.JPG
 xwallpaper --zoom ~/media/images/wallpapers/DSC0510\ ladder.JPG
 
-xinput map-to-output 'ATML1000:00 03EB:8A79' $idisplay
-xinput map-to-output 'Wacom HID 16C Pen eraser' $idisplay
-xinput map-to-output 'Wacom HID 16C Pen stylus' $idisplay
-xinput --set-prop 'Wacom HID 16C Pen stylus' 'Wacom button action 1' 1572867
-xinput --set-prop 'Wacom HID 16C Pen eraser' 'Wacom button action 0' 1572866
-xinput --set-prop 'Wacom HID 16C Pen stylus' 'Wacom button action 0' 1572865
+#xinput map-to-output 'ATML1000:00 03EB:8A79' $idisplay
+#xinput map-to-output 'Wacom HID 16C Pen eraser' $idisplay
+#xinput map-to-output 'Wacom HID 16C Pen stylus' $idisplay
+#xinput --set-prop 'Wacom HID 16C Pen stylus' 'Wacom button action 1' 1572867
+#xinput --set-prop 'Wacom HID 16C Pen eraser' 'Wacom button action 0' 1572866
+#xinput --set-prop 'Wacom HID 16C Pen stylus' 'Wacom button action 0' 1572865
 
 xinput --list | sed -E '1d;/keyboard/{d;q};s/.*id=([0-9]+).*/\1/' | while read pointer_id; do
 	xinput set-prop $pointer_id 'Device Accel Constant Deceleration' 2
