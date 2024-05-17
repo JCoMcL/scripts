@@ -1,4 +1,7 @@
 #!/usr/bin/env sh
-#find -not -name '*.fp' -type f -exec fpdump {} \;
-#rmlint
-jq '.[] | select(.type == "duplicate_file") | select(.is_original|not) .path | match( "(.+?)([.]fp)$" ).captures[0].string' rmlint.json | xargs trash-put
+# Remove duplicate files based on their audio fingerprint
+# I highly recommend running each of these commands individually. I only put inot a script so I wouldn't forget.
+
+find -not -name '*.fp' -type f -exec fpdump {} \;
+rmlint
+#jq '.[] | select(.type == "duplicate_file") | select(.is_original|not) .path | match( "(.+?)([.]fp)$" ).captures[0].string' rmlint.json | xargs trash-put
