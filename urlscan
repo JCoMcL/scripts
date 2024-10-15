@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+_urlscan() {
+	curl -so /dev/null -w "%{http_code} %{url}\n" "$1"
+}
+
+while read url; do
+	_urlscan "$url"
+	sleep 1
+done
+
