@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+(
+	echo ---------------------------------------
+	echo $0 $@
+	timeout 0.1 cat /dev/stdin
+) >> ~/.cache/whatthadogdoin.log
+true
+
