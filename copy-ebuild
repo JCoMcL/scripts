@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+LOCAL_REPO="$HOME/ebuilds"
+EBUILD_DIR="$(find /var/db/repos -name $1 | umenu -sd "Which ebuild to copy?")"
+
+LOCAL_DIR="$LOCAL_REPO/$(echo $EBUILD_DIR | awk -F/ '{print $(NF-1)'})"
+mkdir -p "$LOCAL_DIR" && cp -r "$EBUILD_DIR" "$LOCAL_DIR"
+echo "$LOCAL_DIR/$(basename $EBUILD_DIR)"
+
+
