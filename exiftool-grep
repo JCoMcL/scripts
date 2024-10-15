@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+f=$1
+shift
+ffprobe -v 0 "$f" | grep -i "$@" >/dev/null
