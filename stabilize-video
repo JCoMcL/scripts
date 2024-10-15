@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+_stabilize_video() {
+	ffmpeg -i "$1" -vf vidstabdetect=shakiness=7 -f null -
+	ffmpeg -i "$1" -vf vidstabtransform=smoothing=30:zoom=20:input="transforms.trf" "stabilized_$1"
+	rm transforms.trf
+}
+
+for f in "$@"; do
+	_stabilize_video "$f"
+done
+

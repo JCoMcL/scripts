@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+
+
+channel_count() {
+	#TODO handle multiple streams as well
+	ffprobe -v quiet "$1" -show_streams -print_format json | jq '.streams[0].channels'
+}
+_ffmpeg_split_channels() {
+	for i in $(seq $(channel_count "$1"))
+		do ffmpeg -i "$1" -af "pan=1c|c0=c$((i-1))" "${1%.*}_c$i.${1##*.}"
+	done
+}
+
+set -x
+for f in "$@"; do
+	_ffmpeg_split_channels "$f"
+done
+
