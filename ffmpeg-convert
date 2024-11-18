@@ -2,9 +2,10 @@
 
 _ffmpeg_convert() {
     ffmpeg -y -loglevel 16 -i "$1" -map_metadata 0 "${1%.*}.$2" </dev/null && #what an annoying bug lol, ffmpeg was fucking with stdin and somehow removed the . from the start of the file
-    rm "$1"
+    trash-put "$1"
 }
 
+test -z "$1" && echo please specify and what to convert to && exit 1
 while IFS= read -r line; do
     _ffmpeg_convert "$line" "$1"
 done

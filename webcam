@@ -11,11 +11,4 @@ open_camera(){
 	#vlc v4l2://:input-slave=alsa://:v4l-vdev="$1"
 }
 
-open_camera `list_cameras | umenu`
-
-for cam in $(list_cameras); do
-	open_camera $cam  &
-done
-
-
-
+open_camera `list_cameras | umenu -s`

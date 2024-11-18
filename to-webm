@@ -1,9 +1,8 @@
 #!/usr/bin/env sh
 
 _to_webm() {
-	name="$(basename $1 | sed 's/.gif$//')"
-	ffmpeg -i "$1" "$name.webm"
-	rm "$1"
+	ffmpeg -i "$1" -filter:v fps=30 -crf 56 "${1%.*}.webm" &&
+	trash-put "$1"
 }
 
 for f in "$@"; do

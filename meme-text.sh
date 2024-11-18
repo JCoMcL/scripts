@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Initialize variables to customize output
-: "${FFILE:="${HOME}/.fonts/i/impact.ttf"}" # Let user choose font file
+: "${FFILE:="${HOME}/.local/share/fonts/impact.ttf"}" # Let user choose font file
 : "${FSIZE:=72}"                            # Let user choose font size in px
 : "${BSIZE:=5}"                             # Let user choose stroke size in px
 : "${OFFSET:='(h*0.05)'}"                   # Let user choose text offset in px
