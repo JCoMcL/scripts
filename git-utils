@@ -2,12 +2,12 @@
 
 is_git_base() {
 	test -n "$1" && testpath="$@" || testpath="."
-	test -e $(realpath "$testpath")/.git
+	test -e "$(realpath "$testpath")/.git"
 }
 
 go_to_git_base() {
 	wd="`pwd`"
-	while ! is_git_base && [ `pwd` != "/" ]; do
+	while ! is_git_base && [ "`pwd`" != "/" ]; do
 		cd ..
 	done
 	if ! is_git_base; then
