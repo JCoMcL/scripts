@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
 
-set -x
 
 for f in $(ls); do
 	xwallpaper --tile $f

@@ -1,5 +1,4 @@
 #!/usr/bin/env sh
-set -x
 timecode() {
 	date "+%Y-%m-%d-%H%M%S"
 }

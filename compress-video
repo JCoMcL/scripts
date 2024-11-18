@@ -1,5 +1,4 @@
 #!/usr/bin/env sh
-set -x
 
 target_size=6M
 
@@ -21,7 +20,6 @@ bitrate() {
 _compress_video() {
 	ffmpeg -i "$1" -b $(bitrate "$1" $target_size) "_$1"
 }
-set -x
 for f in "$@"; do
 	_compress_video "$f"
 done

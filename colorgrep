@@ -1,5 +1,4 @@
 #!/usr/bin/env sh
-#set -x
 
 color_replace() {
 	match="$@"

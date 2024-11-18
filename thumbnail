@@ -16,7 +16,6 @@ noclobber() {
 	test -e "$1" && echo "$(dirname "$1")~$(basename "$1")" || echo $1
 }
 _thumbnail() {
-	set -x
     	art="$(art "$1")"
 	out="${1%.*}.$(audio_type "$1")"
 	out_noclobber="$(noclobber "$out")"

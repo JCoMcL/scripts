@@ -5,7 +5,6 @@ INPUTNAME=$(echo $INPUT | sed 's/.pdf$//')
 
 offset=0 #62
 
-set -x
 pdfinfo $INPUT | awk '/^Page size/{ print $3" "$5/2+('$offset')" "$5/2-('$offset'); }' | read height lwidth rwidth
 echo $height $lwidth $rwidth
 set +x
