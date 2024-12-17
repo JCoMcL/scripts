@@ -1,0 +1,24 @@
+#!/usr/bin/env sh
+
+# creates chapter metadata from an ffmpeg concat list
+# maybe one day will be expanded to do the concat and add the metadata as well
+
+duration() {
+	ffprobe -v error -show_entries format=duration -of 'default=noprint_wrappers=1:nokey=1' "$1" | sed 's/\..*//'
+}
+title() {
+	echo "$@" | sed -E 's/.*[0-9]{3}(.+).webm/\1/'
+}
+
+time=0
+echo ";FFMETADATA1"
+while read file; do
+	echo "[CHAPTER]"
+	echo "TIMEBASE=1/1"
+	echo "START=$time"
+	time=$((time+$(duration "$file")))
+	echo "END=$time"
+	echo "title=$(title "$file")"
+	echo
+done
+
