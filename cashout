@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+"$@" | tee "$(echo "$@" | sed 's@/@╱@g')"
