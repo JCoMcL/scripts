@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+tmpfile=`mktemp`
+pw-record $tmpfile
+ffmpeg -y -f wav -i $tmpfile -ac 1 voice-message.ogg
+dragon voice-message.ogg
+rm $tmpfile voice-message.ogg
+
