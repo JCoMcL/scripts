@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+_transcribe() {
+	echo "$1"
+	ffmpeg -loglevel error -i "$1" -f wav - | whisper-cpp - 2>/dev/null | tee "$1.transcribe"
+}
+
+for f in "$@"; do
+	_transcribe "$f"
+done
+
