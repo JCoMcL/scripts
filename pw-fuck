@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+# mess with pipewire settings to unclog the pipes
+# funny hopw often "unclogging the pipes" is a meaningful metaphor for software
+
+pw-metadata -n settings 0 clock.rate 44100
+pw-metadata -n settings 0 clock.force-rate 44100
+pw-metadata -n settings 0 clock.force-quantum 256
+pw-metadata -n settings 0 clock.allowed-rates '[ 48000 44100 ]'
+pw-metadata -n settings 0 clock.force-quantum 0
+pw-metadata -n settings 0 clock.force-rate 0
+pw-metadata -n settings 0 clock.rate 0
