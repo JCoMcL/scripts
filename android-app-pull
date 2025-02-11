@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+clean() {
+	sed 's/^package://'
+}
+app_domain() {
+	adb shell cmd package list packages | grep "$1" | clean | umenu -s 
+}
+
+apk_path() {
+	adb shell pm path "$1" | clean
+}
+
+adb pull "$(apk_path "$(app_domain $1)")" "$1.apk"
