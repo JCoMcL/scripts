@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+
+unpuase_window() {
+	kill -CONT $1 && rm -f ".$1.paused"
+}
+pause_window() {
+	if [ -e ".$1.paused" ]; then
+		unpuase_window $1
+	else
+		touch ".$1.paused"
+		kill -STOP $1
+	fi
+}
+
+pause_window $(xprop _NET_WM_PID -id $(xdotool getactivewindow) | cut -d '=' -f 2)
+
