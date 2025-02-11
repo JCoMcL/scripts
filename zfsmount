@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+_zfsmount() {
+	dir="/run/media/jcomcl/$@"
+	mkdir -p "$dir"
+	mount -t zfs "$@" "$dir"
+}
+
+for f in "$@"; do
+	_zfsmount "$f"
+done
+
