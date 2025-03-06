@@ -1,0 +1,87 @@
+#!/usr/bin/env sh
+
+err() {
+	echo "$(color red)$@$(color off)" >&2
+}
+warn() {
+	echo "$(color blue)$@$(color off)" >&2
+}
+die() {
+	err $@
+	exit 1
+}
+
+usage="playlist <command> [queued actions] < [queued actions]"
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-q|--quiet)
+			warn() {
+				return
+			}
+			shift
+			;;
+		-n|--name)
+			shift
+			set -u
+			cmd_name="$1"
+			set +u
+			shift
+			;;
+		-f|--foreground)
+			foreground=true
+			logfile="/dev/stdout"
+			shift
+			;;
+		*)
+			break
+			;;
+	esac
+done
+
+test -n "$1" || die "$usage"
+cmd="$1"; shift
+: ${cmd_name:="$(echo $cmd | cut -f 1)"}
+plist="$cmd_name.plist"
+: ${logfile:=$cmd_name.log}
+
+if test -e "$plist"; then
+	if ! test -f $plist; then
+		die "$plist exists and is not a regular file"
+	fi
+	warn "using existing playlist: $plist"
+fi
+
+# add args to playlist
+while [ $# -gt 0 ]; do
+	echo "$1" >> $plist
+	shift
+done
+
+# add stdin to playlist
+if read -t 0
+	then cat >> $plist
+fi
+
+not_locked() {
+	exec 4<>$1; flock -n 4
+}
+plist_runner() {
+	if not_locked "$plist"; then
+		warn "started runner"
+		while [ -s "$plist" ] ; do
+			echo "$cmd $(head -1 "$plist")"
+			$cmd $(head -1 "$plist")
+			sed -i 1d "$plist"
+		done > "$logfile"
+		rm "$plist"
+		trash-put "$logfile" 2>/dev/null &&
+		warn "Playlist completed. use \`trash-restore\` to retrieve log"
+	fi
+}
+
+if [ -n "$foreground" ]
+then plist_runner
+else plist_runner&
+fi
+
