@@ -21,9 +21,9 @@ fi
 
 git branch $patch
 git checkout $patch
-patchsite=$(curl -s $site$patch/) 
-
-curl $site$patch/$(echo $patchsite | grep -o -P "\"$app-.+?\.diff" | tr -d "\"" | dmenu) > "$patch.diff"
+echo $site$patch
+patchsite="$site$patch/$(curl -s "$site$patch/" | pup 'a attr{href}' | grep 'diff$' | dmenu)"
+curl $patchsite > "$patch.diff"
 
 git apply $patch.diff
 rm $patch.diff
