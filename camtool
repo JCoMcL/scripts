@@ -1,0 +1,44 @@
+#!/usr/bin/env sh
+
+MNT="CamMount"
+
+pull_all() {
+	shopt globstar on
+	set -x
+	rsync --recursive --verbose --progress --remove-source-files --no-relative --no-implied-dirs \
+		--include='*.*' --exclude='*' \
+		"$(mount)"/** ${1:-"."} &&
+	set +x
+	unmount
+}
+
+mount() {
+	mkdir $MNT &&
+	gphotofs $MNT &&
+	sleep 1
+	echo $MNT &&
+	return ||
+	echo "Error: Failed to mount camera"
+	exit 1
+}
+
+unmount() {
+	umount $MNT
+	rmdir $MNT
+}
+
+get_newest() {
+	find "$(mount)" -type f -iname '*.JPG' | xargs ls -t | head -1 | dragon -I
+	unmount
+}
+
+show_help() {
+	echo "Available Commands:"
+	declare -F | awk '{print "- "$3}'
+	exit 1
+}
+
+test -z "$1" && show_help
+cmd=$1
+shift
+$cmd $@
