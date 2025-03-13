@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+_encode_for_compatibility() {
+	ffmpeg -i "$1" -c:v libx264 -profile:v high -pix_fmt yuv420p -preset medium -crf 23 -c:a aac -b:a 128k "${1%.*}-compat.mp4"
+}
+
+for f in "$@"; do
+	_encode_for_compatibility "$f"
+done
+
