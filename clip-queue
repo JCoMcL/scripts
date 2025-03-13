@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 while read line
 do
-	echo "$line" | xclip -selection clipboard
+	echo -n "$line" | xclip -selection clipboard
 	read -p "$line" </dev/tty 
 done < "${1:-/dev/stdin}"

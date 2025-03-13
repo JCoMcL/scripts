@@ -48,7 +48,7 @@ make_new() {
 
 	test -e "$1" || {
 		cp $template $1 #ensures that permissions are copied
-			sub="$(nextension $1)"
+		sub="$(nextension $1)"
 		sed -i "s/TEMP/$sub/g" "$1"
 	}
 	$EDITOR "$1"
