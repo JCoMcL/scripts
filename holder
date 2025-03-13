@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+eval $@; echo; echo press enter; read
