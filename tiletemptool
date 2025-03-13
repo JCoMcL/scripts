@@ -1,0 +1,75 @@
+#!/bin/env sh
+
+tiledir="tiles.tmp"
+
+# this could be awesome but I'm not going finish it right now
+csv() {
+	while IFS=',' read -a cols; do
+		echo -n "\( ${cols[*]} +append \)"
+	done
+}
+
+chrono_tiledir() {
+	find "$tiledir" -type f  | xargs -d '\n' ls -t
+}
+combine() {
+	#reads from stdin
+	magick montage $(chrono_tiledir) -geometry +0+0 -background none $1
+}
+
+clean() {
+	trash-put "$tiledir" ||
+	rm -r "$tiledir"
+}
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-x|--width)
+			shift
+			set -u; WIDTH=$1; set +u
+			shift
+			;;
+		-y|--height)
+			shift
+			set -u; HEIGHT=$1; set +u
+			shift
+			;;
+		-k|--keep)
+			shift
+			clean() {
+			:
+			}
+			;;
+		*)
+			break
+			;;
+	esac
+done
+
+: ${WIDTH:=${HEIGHT:=256}}
+: ${HEIGHT:=$WIDTH}
+
+
+tile() {
+	mkdir -p "$tiledir"
+	output=`echo $tiledir/$1.png | tr ' ' _`
+	magick -size ${WIDTH}x${HEIGHT} xc:none \
+		-fill none -stroke black -strokewidth 2 \
+		-draw "rectangle 1,1 $((WIDTH - 2)),$((HEIGHT - 2))" \
+		-fill black -gravity center -pointsize $((WIDTH / 7)) \
+		-annotate $((45 * (HEIGHT / WIDTH))) "$1" \
+		"$output"
+	ls "$output"
+}
+
+while [ $# -gt 1 ]; do
+	tile "$1"
+	shift
+done
+
+if read -t 0; then while read line; do
+	tile "$line"
+done fi
+
+combine "$1" &&
+clean
