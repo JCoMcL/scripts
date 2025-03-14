@@ -1,7 +1,48 @@
 #!/usr/bin/env sh
 
+err() {
+	echo "$(color red)$@$(color off)" >&2
+}
+warn() {
+	echo "$(color blue)$@$(color off)" >&2
+}
+die() {
+	err $@
+	exit 1
+}
+die() {
+	warn "TEMP [files]"
+}
+
 _TEMP() {
 }
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-q|--quiet)
+			warn(){ :; }
+			shift
+			;;
+		-o|--option)
+			shift 
+			set -u; OPTION=$1; set +u
+			shift
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			break
+			;;
+	esac
+done
+
+: ${OPTION:=default}
+
+if read -t 0; then while read line; do
+	_TEMP "$line"
+done fi
 
 for f in "$@"; do
 	_TEMP "$f"
