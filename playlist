@@ -71,7 +71,7 @@ plist_runner() {
 		warn "started runner"
 		while [ -s "$plist" ] ; do
 			echo "$cmd $(head -1 "$plist")"
-			$cmd $(head -1 "$plist")
+			$cmd "$(head -1 "$plist")"
 			sed -i 1d "$plist"
 		done > "$logfile"
 		rm "$plist"
