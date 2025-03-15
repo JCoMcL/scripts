@@ -1,0 +1,65 @@
+#!/usr/bin/env sh
+
+err() {
+	echo "$(color red)$@$(color off)" >&2
+}
+warn() {
+	echo "$(color ltblue)$@$(color off)" >&2
+}
+die() {
+	err $@
+	exit 1
+}
+die() {
+	warn "sortto [files]"
+}
+
+# m/i/m returns media/images/memes
+find_sort_location() {
+	find "$BASE" -type d -wholename "$BASE/$(echo $1 | sed -E 's|([^/]+)|\1*|g')" | head -1
+}
+
+movemcd() {
+	mv "$1" "$2"
+}
+_sortto() {
+	movemcd "$1" "$SORT_LOCATION" &&
+	warn "$1 sorted to $SORT_LOCATION"
+}
+
+BASE="$HOME/media"
+SORT_LOCATION="$BASE/images"
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		--quiet)
+			warn(){ :; }
+			shift
+			;;
+		--dry)
+			movemcd(){ :; }
+			shift
+			;;
+		--base)
+			shift 
+			set -u; BASE=$1; set +u
+			shift
+			;;
+		-*)
+			if CANDIDATE="$(find_sort_location ${1#?})"
+			then SORT_LOCATION="$CANDIDATE"
+			else "warn could not find value valid location for ${1#?} in $BASE"
+			fi
+			shift
+			;;
+		*)
+			_sortto "$1"
+			shift
+			;;
+	esac
+done
+
+
+if read -t 0; then while read line; do
+	_sortto "$line"
+done fi
