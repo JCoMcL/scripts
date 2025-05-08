@@ -1,10 +1,10 @@
 #!/usr/bin/env sh
 
 clean() {
-	sed 's/^package://'
+	sed 's/^package://' | head -1
 }
 app_domain() {
-	adb shell cmd package list packages | grep "$1" | clean | umenu -s 
+	adb shell cmd package list packages | grep -i "$1" | clean | umenu -s 
 }
 
 apk_path() {

@@ -3,17 +3,16 @@
 MNT="CamMount"
 
 pull_all() {
-	shopt globstar on
+	shopt -s globstar
 	set -x
-	rsync --recursive --verbose --progress --remove-source-files --no-relative --no-implied-dirs \
-		--include='*.*' --exclude='*' \
+	rsync --verbose --progress --remove-source-files --no-relative --no-implied-dirs \
 		"$(mount)"/** ${1:-"."} &&
 	set +x
 	unmount
 }
 
 mount() {
-	mkdir $MNT &&
+	mkdir -p $MNT &&
 	gphotofs $MNT &&
 	sleep 1
 	echo $MNT &&
@@ -28,7 +27,9 @@ unmount() {
 }
 
 get_newest() {
-	find "$(mount)" -type f -iname '*.JPG' | xargs ls -t | head -1 | dragon -I
+	set -x
+	find "$(mount)" -type f -iname '*.JPG' | xargs ls -t | head -1 | xargs cat | magick jpg:- -identify -sampling-factor 4:2:0 -strip -quality 85 -interlace JPEG latest.jpg &&
+	dragon latest.jpg &&
 	unmount
 }
 

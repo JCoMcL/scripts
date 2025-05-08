@@ -3,11 +3,11 @@
 #convert a video to an audio file with thumbnail
 
 audio_type() {
-    	echo mp3 #not all audio streams support thumbnails and ffmpeg tends to give some very cryptic error messages when you try, so I'm hardcoding mp3 until I have a better idea
+	echo mp3 #not all audio streams support thumbnails and ffmpeg tends to give some very cryptic error messages when you try, so I'm hardcoding mp3 until I have a better idea
 	#ffprobe "$1" -loglevel error -select_streams a -show_entries stream=codec_name | sed -n '2s/^.*=//p'
 }
 art() {
-    	out="${1%.*}.jpg"
+	out="${1%.*}.png"
 	test -e $out ||
 	ffmpeg -y -loglevel error -i "$1" -ss 0:0:5 -frames:v 1 "$out"
 	echo $out
@@ -16,15 +16,17 @@ noclobber() {
 	test -e "$1" && echo "$(dirname "$1")~$(basename "$1")" || echo $1
 }
 _thumbnail() {
-    	art="$(art "$1")"
+	IFS='' #this prevents trimming double whitespace which was a real bug that took a *long* time to figure out
+	art="$(art "$1")"
 	out="${1%.*}.$(audio_type "$1")"
 	out_noclobber="$(noclobber "$out")"
 
+	set -x
 	ffmpeg -i "$1" -i "$art" -map 0:a:0 -map 1:0 "$out_noclobber" &&
-	rm "$art" &&
+	trash-put "$art" &&
 	if test "$out" = "$1"; then
-    		mv "$out_noclobber" "$1"
-    	fi
+		mv "$out_noclobber" "$1"
+	fi
 }
 
 for f in "$@"; do

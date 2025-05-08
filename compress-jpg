@@ -1,8 +1,7 @@
 #!/usr/bin/env sh
 
 _compress_jpg() {
-    NAME="$(dirname $1)/~$(basename $1)"
-    convert "$1" -sampling-factor 4:2:0 -strip -quality 85 -interlace JPEG "$NAME"
+    magick "$1" -sampling-factor 4:2:0 -strip -quality 85 -interlace JPEG "${1%.*}_compressed.${1#*.}"
 
 }
 

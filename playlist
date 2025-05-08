@@ -33,6 +33,9 @@ while [ $# -gt 0 ]; do
 			logfile="/dev/stdout"
 			shift
 			;;
+		-*)
+			die "unknown flag: $1"
+			;;
 		*)
 			break
 			;;
@@ -41,7 +44,7 @@ done
 
 test -n "$1" || die "$usage"
 cmd="$1"; shift
-: ${cmd_name:="$(echo $cmd | cut -f 1)"}
+: ${cmd_name:="$(echo $cmd | cut -d ' ' -f 1)"}
 plist="$cmd_name.plist"
 : ${logfile:=$cmd_name.log}
 
