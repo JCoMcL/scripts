@@ -1,0 +1,37 @@
+#!/usr/bin/env sh
+
+ffmpeg_args=""
+add_args() {
+	ffmpeg_args="$ffmpeg_args $@"
+}
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-c|--copy)
+			add_args "-c copy"
+			shift
+			;;
+		-o|--out)
+			shift 
+			set -u; out="$1"; set +u
+			shift
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			break
+			;;
+	esac
+done
+
+: ${out:= concat.${1##*.}} # use input filetype for output
+
+list=`mktemp`
+for f in "$@"; do
+	echo "file '`realpath "$f"`'" >> $list
+done
+set -x
+ffmpeg -f concat -safe 0 -i $list $ffmpeg_args $out
+
