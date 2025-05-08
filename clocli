@@ -1,0 +1,113 @@
+#!/usr/bin/env sh
+
+err() {
+	echo "$(color red)$@$(color off)" >&2
+}
+warn() {
+	echo "$(color blue)$@$(color off)" >&2
+}
+die() {
+	err $@
+	exit 1
+}
+
+now() {
+	echo `date +%s`
+}
+
+START_TIME=`now`
+elapsed() {
+	echo $((`now` - ${1:-START_TIME}))
+}
+
+DRIFT=0
+worktime() {
+	echo $((`elapsed` + DRIFT))
+}
+worktime_tag() {
+	echo "$(color blue)[ $((`worktime` / 60))m ]$(color off)"
+}
+
+pretty_time() {
+	TIME=$1
+	if [ $((TIME / 3600)) -gt 0 ]; then
+		H=$((TIME / 3600))
+		echo -n "${H}h "
+		TIME=$((TIME % 3600))
+	fi
+	if [ $((TIME / 60)) -gt 0 ]; then
+		M=$((TIME / 60))
+		echo -n "${M}m "
+		TIME=$((TIME % 60))
+	fi
+	echo "${TIME}s"
+}
+
+timestamp() {
+	date ${1+--date=@$1} '+%Y-%m-%d %H:%M:%S'
+}
+
+TOPIC=$1
+LOGDIR="$HOME/.local/share/clocli"
+mkdir -p "$LOGDIR" || die "could not create log directory $LOGDIR"
+LOGFILE="$LOGDIR/$(timestamp $START_TIME)${TOPIC+ $TOPIC}.log"
+log() {
+	echo "[`timestamp`] $@" | tee -a "$LOGFILE"
+}
+info() {
+	echo "$@ `worktime_tag`" >&2
+}
+
+pause() {
+	PAUSE_START=`now`
+	log "Paused${1:+: $1}"
+	info "press enter to resume"
+	read
+	DURATION=`elapsed $PAUSE_START`
+	log "Pause End. Duration: $(pretty_time $DURATION)"
+	DRIFT=$((DRIFT - DURATION))
+}
+
+INTERVAL=300
+interval_remainder() {
+	echo $((INTERVAL - (INTERVAL + `worktime`) % INTERVAL))
+}
+await_cmd() {
+	while ! read -t `interval_remainder` cmd; do
+		log "Worktime: $((`worktime` / 60)) minutes"
+	done
+}
+
+finale() {
+	breaktime=$((`elapsed` - `worktime`))
+	log "Session Ended:
+---
+Full duration: $(pretty_time $(elapsed))
+Breaks:        $(pretty_time $breaktime) ($((breaktime * 100 / `elapsed`))%)
+Worktime:      $((`worktime`)) minutes"
+	trap exit EXIT
+}
+
+trap finale EXIT
+
+log "New ${TOPIC+$TOPIC }Session started.
+logging session to $LOGFILE
+"
+
+echo "Commands:
+  `color bd`pause`color off` [`color bd`reason`color off`]
+  `color bd`end`color off`
+"
+
+while await_cmd; do
+	case "$cmd" in
+		pause*)
+			pause "${cmd#pause}"
+			;;
+		end)
+			break
+			;;
+	esac
+done
+
+finale
