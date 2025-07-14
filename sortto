@@ -20,7 +20,7 @@ find_sort_location() {
 }
 
 movemcd() {
-	mv "$1" "$2"
+	mv --no-clobber "$1" "$2"
 }
 _sortto() {
 	movemcd "$1" "$SORT_LOCATION" &&
