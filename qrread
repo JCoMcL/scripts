@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+maim -us | zbarimg -q /dev/stdin | pee 'xargs notify-send' 'xclip -sel clipboard'
