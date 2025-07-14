@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Burn an audio CD from any ffmpeg-compatible files using cdrdao
+# Usage: ./burn_audio_cd.sh file1.mp3 file2.flac file3.ogg ...
+
+set -e
+
+# Check for dependencies
+command -v ffmpeg >/dev/null || { echo "ffmpeg not found. Install it first."; exit 1; }
+command -v cdrdao >/dev/null || { echo "cdrdao not found. Install it first."; exit 1; }
+
+# Ensure at least one input file
+if [ "$#" -lt 1 ]; then
+    echo "Usage: $0 track1.mp3 track2.flac track3.ogg ..."
+    exit 1
+fi
+
+WORKDIR="./cd_burn_temp"
+TOC_FILE="$WORKDIR/disc.toc"
+DEVICE="/dev/sr0"  # Change if your burner uses a different device
+
+# Create working directory
+mkdir -p "$WORKDIR"
+#rm -f "$WORKDIR"/*.wav "$TOC_FILE"
+
+echo "CD_DA" > "$TOC_FILE"
+
+# Convert and build TOC
+i=1
+for input in "$@"; do
+    if [ ! -f "$input" ]; then
+        echo "File not found: $input"
+    else
+        base=`basename "$input"`%.ogg
+        base="${base%.*}" #sans file extension
+        wav="$WORKDIR/track$(printf %02d $i)_$base.wav"
+        set +x
+
+
+        echo "Converting: $input → $wav"
+        ffmpeg -loglevel 16 -y -i "$input" -ar 44100 -ac 2 -sample_fmt s16 "$wav"
+
+        echo "" >> "$TOC_FILE"
+        echo "TRACK AUDIO" >> "$TOC_FILE"
+        echo "FILE \"$(basename "$wav")\" 0" >> "$TOC_FILE"
+        
+        i=$((i + 1))
+    fi
+done
+
+
+# Burn CD
+echo "Burning CD using cdrdao..."
+(
+  cd "$WORKDIR"
+  cdrdao write --device "$DEVICE" "disc.toc"
+)
+
+trash-put "$WORKDIR"
+echo "✅ Done! Audio CD burned successfully."
