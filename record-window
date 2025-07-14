@@ -2,4 +2,4 @@
 
 eval "$(xdotool getactivewindow getwindowgeometry --shell)"
 echo okay go
-ffmpeg -video_size "$WIDTH"x"$HEIGHT" -framerate 20 -f X11grab -i :0.0+$X,$Y -f pulse -ac 2 -i default  "screenrec-$(date +%s).mp4"
+ffmpeg -video_size "$WIDTH"x"$HEIGHT" -framerate 20 -f X11grab -i :0.0+$X,$Y "screenrec-$(date +%s).mp4"
