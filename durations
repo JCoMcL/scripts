@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+
+pretty() {
+    printf '%02d:%02d:%02d\n' $(echo "$1/3600" | bc) $(echo "($1%3600)/60" | bc) $(echo "$1%60" | bc) 2>/dev/null
+}
+
+total=0
+for file in "$@"; do
+    if [ ! -f "$file" ]; then
+        echo "File not found: $file" >&2
+        continue
+    fi
+
+    duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$file") || continue
+    total=`echo "$duration + $total" | bc`
+
+    # Convert to HH:MM:SS format
+
+    echo "`pretty $duration`: $file"
+
+done
+echo `pretty $total`: total
