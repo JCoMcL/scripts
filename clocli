@@ -1,10 +1,18 @@
 #!/usr/bin/env sh
 
+RED=[0m[31m
+BLUE=[0m[34m
+BOLD=[1m
+CLEAR=[0m
+
+LOGDIR="$HOME/.local/share/clocli"
+mkdir -p "$LOGDIR" || die "could not create log directory $LOGDIR"
+
 err() {
-	echo "$(color red)$@$(color off)" >&2
+	echo "$RED$@$CLEAR" >&2
 }
 warn() {
-	echo "$(color blue)$@$(color off)" >&2
+	echo "$BLUE$@$CLEAR" >&2
 }
 die() {
 	err $@
@@ -15,9 +23,8 @@ now() {
 	echo `date +%s`
 }
 
-START_TIME=`now`
 elapsed() {
-	echo $((`now` - ${1:-START_TIME}))
+	echo $((`now` - START_TIME - DOWNTIME_TOTAL))
 }
 
 DRIFT=0
@@ -25,7 +32,7 @@ worktime() {
 	echo $((`elapsed` + DRIFT))
 }
 worktime_tag() {
-	echo "$(color blue)[ $((`worktime` / 60))m ]$(color off)"
+	echo "$BLUE[ $((`worktime` / 60))m ]$CLEAR"
 }
 
 pretty_time() {
@@ -47,10 +54,12 @@ timestamp() {
 	date ${1+--date=@$1} '+%Y-%m-%d %H:%M:%S'
 }
 
-TOPIC=$1
-LOGDIR="$HOME/.local/share/clocli"
-mkdir -p "$LOGDIR" || die "could not create log directory $LOGDIR"
-LOGFILE="$LOGDIR/$(timestamp $START_TIME)${TOPIC+ $TOPIC}.log"
+new_logfile() {
+	echo "$LOGDIR/$(timestamp $START_TIME)${TOPIC+ $TOPIC}.log"
+}
+find_logfile() {
+	find "$LOGDIR" -type f -name "*$1.log" | sort | tail -1 | grep . || die "no prior logfile matching $1 in $LOGDIR"
+}
 log() {
 	echo "[`timestamp`] $@" | tee -a "$LOGFILE"
 }
@@ -63,9 +72,53 @@ pause() {
 	log "Paused${1:+: $1}"
 	info "press enter to resume"
 	read
-	DURATION=`elapsed $PAUSE_START`
+	DURATION=$((`now` - PAUSE_START))
 	log "Pause End. Duration: $(pretty_time $DURATION)"
 	DRIFT=$((DRIFT - DURATION))
+}
+
+filter_lines_without_timestamp() {
+	grep -P '^\[[0-9 \-:]+\]' "${@:--}" # read provided file or stdin if args unset
+}
+
+parse_log_time() {
+	date --date="$(echo $@ | awk -F '[][]' '{print $2}')" +%s || error "Bad Timestamp --> $@"
+}
+
+load_times_from_logfile() {
+	local PAUSE_START=
+	local PAUSE_TOTAL=0
+	DOWNTIME_TOTAL=0
+	local END_TIME=
+	local LAST_LINE=
+
+	while IFS= read -r line; do
+		t=$(parse_log_time $line)
+
+		test -z "$START_TIME" && START_TIME=$t # set start to the first time we encounter
+		case "$line" in
+			*"] Paused"*)
+				test -z "$PAUSE_START" || err "Paused twice in a row!"
+				PAUSE_START=$t
+				;;
+			*"] Pause End."*)
+				test -n "$PAUSE_START" || err "Pause End before Pause Start!"
+				PAUSE_TOTAL=$((PAUSE_TOTAL + t - PAUSE_START))
+				PAUSE_START=
+				;;
+			*"] Resuming "*)
+				DOWNTIME_TOTAL=$((DOWNTIME_TOTAL + t - END_TIME))
+				echo dt total $DOWNTIME_TOTAL
+				PAUSE_START=
+		esac
+
+		END_TIME=$t
+		LAST_LINE=$line
+	done < <(filter_lines_without_timestamp "$LOGFILE")
+
+	DRIFT=$((DRIFT - PAUSE_TOTAL))
+	DOWNTIME=$((`now` - END_TIME))
+	DOWNTIME_TOTAL=$((DOWNTIME_TOTAL + DOWNTIME))
 }
 
 INTERVAL=300
@@ -84,19 +137,33 @@ finale() {
 ---
 Full duration: $(pretty_time $(elapsed))
 Breaks:        $(pretty_time $breaktime) ($((breaktime * 100 / `elapsed`))%)
-Worktime:      $((`worktime`)) minutes"
+Worktime:      $((`worktime` / 60 )) minutes"
 	trap exit EXIT
 }
-
 trap finale EXIT
 
-log "New ${TOPIC+$TOPIC }Session started.
+
+if [ "$1" == "--resume" ]; then
+	LOGFILE="$(find_logfile "$2")"
+	load_times_from_logfile "$LOGFILE"
+
+	TOPIC="$(basename "$LOGFILE" | sed -E 's/[0-9\-]+ [0-9:]+ *(.*) *\.log/\1/')"
+	log "Resuming ${TOPIC+$TOPIC }Session after $(pretty_time $DOWNTIME) downtime.
 logging session to $LOGFILE
 "
 
+else
+	TOPIC="$1"
+	START_TIME=`now`
+	LOGFILE="$(new_logfile "$TOPIC")"
+	log "New ${TOPIC+$TOPIC }Session started.
+logging session to $LOGFILE
+"
+fi
+
 echo "Commands:
-  `color bd`pause`color off` [`color bd`reason`color off`]
-  `color bd`end`color off`
+  ${BOLD}pause$CLEAR [${BOLD}reason$CLEAR]
+  ${BOLD}end$CLEAR
 "
 
 while await_cmd; do
