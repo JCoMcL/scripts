@@ -35,5 +35,5 @@ case ${codec} in
     echo "original codec is ${codec}"
 esac
 
-ffmpeg -i "${input}" -map 0 -c copy -c:v ${codec} -crf 17 -filter:v "${crop}" "${output}"
+ffmpeg -i "${input}" -map 0 -c copy -c:v ${codec} -filter:v "${crop}" "${output}"
 

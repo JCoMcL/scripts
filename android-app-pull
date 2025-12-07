@@ -4,7 +4,7 @@ clean() {
 	sed 's/^package://' | head -1
 }
 app_domain() {
-	adb shell cmd package list packages | grep -i "$1" | clean | umenu -s 
+	adb shell cmd package list packages | fzf | clean
 }
 
 apk_path() {

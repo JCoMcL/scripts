@@ -16,9 +16,7 @@ usage="playlist <command> [queued actions] < [queued actions]"
 while [ $# -gt 0 ]; do
 	case "$1" in
 		-q|--quiet)
-			warn() {
-				return
-			}
+			warn() {; return; }
 			shift
 			;;
 		-n|--name)
@@ -67,7 +65,7 @@ if read -t 0
 fi
 
 not_locked() {
-	exec 4<>$1; flock -n 4
+	exec 4<>"$1.lock"; flock -n 4
 }
 plist_runner() {
 	if not_locked "$plist"; then

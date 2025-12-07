@@ -2,9 +2,8 @@
 
 . git-utils
 
-go_to_git_base && {
-	for item in "$@"; do
-		echo "$item" >> .gitignore
-	done
-}
+ls .gitignore || go_to_git_base || echo "warning: does not appear to be a git repository";
+for item in "$@"; do
+	echo "$item" >> .gitignore
+done
 

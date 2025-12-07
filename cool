@@ -1,26 +1,18 @@
 #!/usr/bin/env sh
 
-arrange() {
-	xrandr --output eDP-1 --off --output DisplayPort-2 --auto --mode 3440x1440 --rate 120 --output DisplayPort-3 --auto --below DisplayPort-2
-}
-if ! arrange
-	then xrandr --output eDP-1 --off --output DisplayPort-2 --auto --output DisplayPort-3 --auto --below DisplayPort-2
-	arrange
-fi
-
+xrandr --output DisplayPort-8 --auto --output DisplayPort-7 --mode 3440x1440 --rate 120 --above DisplayPort-8 --output eDP-1 --off ||
+xrandr --output DisplayPort-7 --auto --output DisplayPort-8 --mode 3440x1440 --rate 120 --above DisplayPort-7 --output eDP-1 --off ||
+xrandr --output DisplayPort-6 --auto --output DisplayPort-5 --mode 3440x1440 --rate 120 --above DisplayPort-6 --output eDP-1 --off ||
+xrandr --output DisplayPort-5 --auto --output DisplayPort-6 --mode 3440x1440 --rate 120 --above DisplayPort-5 --output eDP-1 --off
 absolute_pds="WingCoolTouch\|Pen"
 absolute_ids="$(xinput | sed -ne "/Virtual core keyboard/Q;/${absolute_pds}/{s/.*id=\([0-9]\+\).*/\1/p}")"
 for id in $absolute_ids; do
-	xinput --map-to-output $id DisplayPort-3
+	xinput --map-to-output $id eDP-1
 done
 
 #xinput --set-prop 'Wacom HID 16C Pen stylus' 'Wacom button action 1' 1572867
 #xinput --set-prop 'Wacom HID 16C Pen eraser' 'Wacom button action 0' 1572866
 #xinput --set-prop 'Wacom HID 16C Pen stylus' 'Wacom button action 0' 1572865
-
-xinput --list | sed -E '1d;/keyboard/{d;q};s/.*id=([0-9]+).*/\1/' | while read pointer_id; do
-	xinput set-prop $pointer_id 'Device Accel Constant Deceleration' 2
-done
 
 xwallpaper --zoom ~/media/images/wallpapers/DSC0510\ ladder.JPG
 xset r rate 180 50
