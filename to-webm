@@ -1,8 +1,10 @@
 #!/usr/bin/env sh
 
 _to_webm() {
-	ffmpeg -i "$1" -filter:v fps=30 -crf 56 "${1%.*}.webm" &&
-	trash-put "$1"
+	#ffmpeg -i "$1" -crf 32 "${1%.*}.webm" &&
+	#ffmpeg -i "$1" -vf "scale=iw/2:ih/2,fps=20" -crf 32 "${1%.*}.webm" &&
+	ffmpeg -i "$1" -vf "scale=iw/3:ih/3,fps=20" -crf 38 "${1%.*}.webm"
+	#trash-put "$1"
 }
 
 for f in "$@"; do
