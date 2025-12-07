@@ -2,9 +2,36 @@
 
 _transcribe() {
 	echo "$1"
-	ffmpeg -loglevel error -i "$1" -f wav - | whisper-cpp - 2>/dev/null | tee "$1.transcribe"
+	ffmpeg -loglevel error -i "$1" -ar 16000 -f wav - | whisper-cpp $WHISPER_ARGS --output-file "$1" - | tee "$1.transcribe"
 }
 
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-h|--help)
+			usage
+			exit 0
+			;;
+		-s|--sample)
+			SAMPLE_MODE=1
+			shift
+			;;
+		-q|--quiet)
+			QUIET_MODE=1
+			shift
+			;;
+		--)
+			shift
+			break
+			;;
+		-*)
+			WHISPER_ARGS="$WHISPER_ARGS $1"
+			shift
+			;;
+		*)
+			break
+			;;
+	esac
+done
 for f in "$@"; do
 	_transcribe "$f"
 done
