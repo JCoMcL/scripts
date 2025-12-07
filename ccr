@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+
+cflags() {
+	# This probably gonna break, will need an actual programming language to parse the file better
+	if [ -f "compile_commands.json" ]; then
+		jq -r '.[0].arguments.[]' <compile_commands.json | sed '1d;/^-o/Q' | grep -v '^-c$' | tr '\n' ' '
+	fi
+}
+
+ldflags() {
+	if [ -f "requirements" ]; then
+		xargs <requirements pkg-config --static --libs
+	fi
+}
+
+CFLAGS="$(cflags)"
+LDFLAGS="$(ldflags)"
+
+test -n "$1" || exit 1
+
+outfile=`mktemp` &&
+cc $CFLAGS -o $outfile $1 $LDFLAGS &&
+$outfile $@ && rm $outfile

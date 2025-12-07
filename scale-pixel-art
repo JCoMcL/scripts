@@ -1,0 +1,55 @@
+#!/usr/bin/env sh
+
+err() {
+	echo "$(color red)$@$(color off)" >&2
+}
+warn() {
+	echo "$(color blue)$@$(color off)" >&2
+}
+die() {
+	err $@
+	exit 1
+}
+die() {
+	warn "scale-pixel-art [files]"
+}
+
+_scale_pixel_art() {
+	outfile="${1%.*}-16x.${1##*.}"
+	magick $1 -sample '1600%' "$outfile"
+	dragon -x "$outfile"
+	sleep 1
+	trash-put "$outfile"
+}
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-q|--quiet)
+			warn(){ :; }
+			shift
+			;;
+		-o|--option)
+			shift 
+			set -u; OPTION=$1; set +u
+			shift
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			break
+			;;
+	esac
+done
+
+: ${OPTION:=default}
+
+if read -t 0; then while read line; do
+	_scale_pixel_art "$line"
+done fi
+
+for f in "$@"; do
+	_scale_pixel_art "$f"
+done
+
