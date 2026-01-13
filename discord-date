@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+
+DATE="$@"
+_date() {
+	date +"$@" --date="$DATE"
+}
+
+menu_item() {
+	echo "<t:`_date %s`:$1> $(color blue bd)($2)$(color off)"
+}
+{
+	menu_item t "`_date %R`"
+	menu_item T "`_date %T`"
+	menu_item d "`_date %x`"
+	menu_item D "`_date "%B %d %Y"`"
+	menu_item f "`_date "%B %d %Y at %R"`"
+	menu_item F "`_date "%A, %B %d %Y at %R"`"
+	menu_item R "Relative"
+} | sed '/^$/d' | umenu | cut -d ' ' -f 1  | tr '\n' | tee /dev/stderr | xclip
