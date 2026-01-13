@@ -4,7 +4,7 @@
 # I don't think it was meant to end up here, but it's here now and there's no point removing it since it's in the git history and I still use it.
 # One day I'll make my own xdg-open and will no longer have any need for this weird script that has no official home except for a PKGBUILD it used to live inside
 
-_LINOPEN_CFGRC="$XDG_CONFIG_HOME/.linopenrc"
+_LINOPEN_CFGRC="$XDG_CONFIG_HOME/linopenrc"
 _LINOPEN_CFGSYS="/etc/linopen.conf"
 _LINOPEN_CFGARG=
 
@@ -14,7 +14,7 @@ usage() { echo "usage: $(basename $0) [-c <config>] [file]"; }
 
 # pipe configuration
 getconfig() {
-	for cfg in $HOME/.linopenrc $XDG_CONFIG_HOME/.linopenrc $_LINOPEN_CFGSYS; do
+	for cfg in $HOME/.linopenrc $_LINOPEN_CFGRC $_LINOPEN_CFGSYS; do
 		[[ -f "$cfg" ]] && { egrep -v "^(#|$)" "$cfg"; return; }
 	done
 }
