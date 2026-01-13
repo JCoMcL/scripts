@@ -16,7 +16,9 @@ usage="playlist <command> [queued actions] < [queued actions]"
 while [ $# -gt 0 ]; do
 	case "$1" in
 		-q|--quiet)
-			warn() {; return; }
+			warn() {
+				return
+			}
 			shift
 			;;
 		-n|--name)
@@ -47,8 +49,8 @@ plist="$cmd_name.plist"
 : ${logfile:=$cmd_name.log}
 
 if test -e "$plist"; then
-	if ! test -f $plist; then
-		die "$plist exists and is not a regular file"
+	if ! test -f $plist
+		then die "$plist exists and is not a regular file"
 	fi
 	warn "using existing playlist: $plist"
 fi
@@ -72,7 +74,7 @@ plist_runner() {
 		warn "started runner"
 		while [ -s "$plist" ] ; do
 			echo "$cmd $(head -1 "$plist")"
-			$cmd "$(head -1 "$plist")"
+			$cmd "$(head -1 "$plist")" || echo $(head -1 "$plist") >> "failed-$plist"
 			sed -i 1d "$plist"
 		done > "$logfile"
 		rm "$plist"
