@@ -1,0 +1,63 @@
+#!/usr/bin/env sh
+
+err() {
+	echo "$(color red)$@$(color off)" >&2
+}
+warn() {
+	echo "$(color blue)$@$(color off)" >&2
+}
+die() {
+	err $@
+	exit 1
+}
+die() {
+	warn "push-ebuild-repo [files]"
+}
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-q|--quiet)
+			warn(){ :; }
+			shift
+			;;
+		-o|--option)
+			shift 
+			set -u; OPTION=$1; set +u
+			shift
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			break
+			;;
+	esac
+done
+
+test -f profiles/repo_name || die "Could not find profiles/repos_name"
+NAME="$(<profiles/repo_name)"
+test -n "$NAME" || die "profiles/repo_name is empty"
+REPO=/var/db/repos/$NAME
+CONF=/etc/portage/repos.conf/$NAME.conf
+
+test -d .git || die "not a git repository: `pwd`"
+
+if touch /var/db/repos 2>/dev/null; then
+	mkdir -p $REPO
+	git -C $REPO init
+	git -C $REPO config receive.denyCurrentBranch updateInstead
+	git -C $REPO config --add safe.directory "`pwd`"
+
+	test -e $CONF && mv $CONF $CONF~
+	echo "[$NAME]
+location = $REPO
+"	> $CONF
+	git push local
+fi
+if test -O . ; then
+	git remote | grep local || git remote add local $REPO
+	git config --global --add safe.directory $REPO
+	test -f "$CONF" || warn "rerun as root to complete setup"
+fi
+
