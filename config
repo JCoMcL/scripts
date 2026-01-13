@@ -1,1 +1,16 @@
-$EDITOR "$(find $HOME/.config/$1 -type f -maxdepth 1 | head -n 1)"
+#!/usr/bin/env sh
+
+: ${XDG_CONFIG_HOME:=$HOME/.config}
+
+menu_cmd() {
+	INPUT=$( cat )
+	echo "$INPUT" | umenu -sq ||
+	echo "$INPUT" | fzf ||
+	echo "$INPUT" | head -1
+}
+
+find $XDG_CONFIG_HOME -maxdepth 1 -name "*$1*" |
+while read RESULT; do find $RESULT -type f; done |
+sort | uniq |
+grep -v '.git' |
+menu_cmd | xargs $EDITOR
