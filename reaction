@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+fzf --walker-root $HOME/media/images/textables | xargs -d'\n'  dragon -x
