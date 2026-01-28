@@ -1,0 +1,43 @@
+#!/usr/bin/env sh
+
+seconds() {
+	# the `while` is only used to capture the variables. It's not expect to loop
+	echo $@ | while IFS=: read -r hours minutes seconds;
+	do echo "${hours:-0} * 3600 + ${minutes:-0} * 60 + ${seconds:-0}" |
+	bc #using bc instead of shell arithmetic to avoid the funny octal bug
+	done
+}
+
+
+fadein_start=$(seconds 19:00)
+fadein_end=$(seconds 23:00)
+fadeout_start=$(seconds 4:00)
+fadeout_end=$(seconds 5:00)
+
+max_temp=6500
+min_temp=1000
+
+interpolated_temp() {
+	local min=$1
+	local max=$2
+	local val=$3
+
+	echo $((min_temp + (max_temp - min_temp) * (val - min) / (max - min)))
+}
+
+set_time=$(seconds ${1:-$(date +%H:%M)})
+#NOTE: this assumes fadeout happens earlier in the day than fadein
+if test $set_time -lt $fadeout_start;
+	then TEMP=$min_temp
+elif test $set_time -lt $fadeout_end;
+	then TEMP=$(interpolated_temp $fadeout_start $fadeout_end $set_time)
+elif test $set_time -lt $fadein_start;
+	then TEMP=$max_temp
+elif test $set_time -lt $fadein_end;
+	then TEMP=$(interpolated_temp $fadein_end $fadein_start $set_time)
+else
+	TEMP=$min_temp
+fi
+
+redshift -PO "$TEMP" >/dev/null
+echo $TEMP
