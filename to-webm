@@ -1,9 +1,10 @@
 #!/usr/bin/env sh
 
 _to_webm() {
-	#ffmpeg -i "$1" -crf 32 "${1%.*}.webm" &&
-	#ffmpeg -i "$1" -vf "scale=iw/2:ih/2,fps=20" -crf 32 "${1%.*}.webm" &&
-	ffmpeg -i "$1" -vf "scale=iw/3:ih/3,fps=20" -crf 38 "${1%.*}.webm"
+	ffmpeg -i "$1" -crf 45 "${1%.*}.webm"
+	#ffmpeg -i "$1" -vf "scale=iw/2:ih/2,fps=20" -crf 38 "${1%.*}.webm"
+	#ffmpeg -i "$1" -vf "scale=iw/2:ih/2" -crf 35 "${1%.*}.webm"
+	#ffmpeg -i "$1" -vf "fps=60" -crf 35 "${1%.*}.webm"
 	#trash-put "$1"
 }
 
