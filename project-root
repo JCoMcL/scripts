@@ -1,0 +1,88 @@
+#!/bin/sh
+
+# Print project root relative to current working directory
+# Favors correctness over speed; stops at first match.
+
+set -eu
+
+cwd="$(pwd -P)"
+
+# Normalize path
+abspath() {
+    cd "$1" 2>/dev/null && pwd -P
+}
+
+# Convert absolute path to relative (portable)
+relpath() {
+    target="$1"
+    base="$2"
+
+    # If realpath is available, use it
+    if command -v realpath >/dev/null 2>&1; then
+        realpath --relative-to="$base" "$target"
+        return
+    fi
+
+    # Fallback: manual method
+    common="$base"
+    up=""
+
+    while [ "${target#"$common"/}" = "$target" ]; do
+        common=$(dirname "$common")
+        up="../$up"
+        [ "$common" = "/" ] && break
+    done
+
+    down="${target#"$common"/}"
+    printf '%s%s\n' "$up" "$down"
+}
+
+# Try VCS-based detection
+find_vcs_root() {
+    if command -v git >/dev/null 2>&1; then
+        git_root=$(git rev-parse --show-toplevel 2>/dev/null || true)
+        [ -n "$git_root" ] && echo "$git_root" && return
+    fi
+
+    dir="$cwd"
+    while [ "$dir" != "/" ]; do
+        for m in .hg .svn; do
+            [ -e "$dir/$m" ] && echo "$dir" && return
+        done
+        dir=$(dirname "$dir")
+    done
+}
+
+# Try project marker files
+find_marker_root() {
+    markers="
+        .project-root
+        .root
+        pyproject.toml
+        setup.py
+        package.json
+        go.mod
+        Cargo.toml
+        Makefile
+    "
+
+    dir="$cwd"
+    while [ "$dir" != "/" ]; do
+        for m in $markers; do
+            [ -e "$dir/$m" ] && echo "$dir" && return
+        done
+        dir=$(dirname "$dir")
+    done
+}
+
+# Main detection logic
+root=""
+
+root="$(find_vcs_root || true)"
+[ -z "$root" ] && root="$(find_marker_root || true)"
+[ -z "$root" ] && root="$cwd"
+
+root="$(abspath "$root")"
+
+# Print relative path
+relpath "$root" "$cwd"
