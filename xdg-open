@@ -46,16 +46,6 @@ needs_term() {
       return 0 || return 1
 }
 
-# check, if we need fork for terminal program
-needs_fork() {
-   # is either ran from shell or from script
-   if [[ "$(ps -o stat= -p $PPID)" == *S* ]]; then
-      # + == not backgrounded
-      [[ "$(ps -o stat= -p $$)"    == *+* ]] &&
-         return 1 || return 0
-   fi
-}
-
 # launch file with correct program
 # $1 = filename
 # $2 = forced program
@@ -119,16 +109,9 @@ launch() {
    [[ -n "$program" ]] ||
       err "could not find program for '$(basename $1)', check your configuration"
 
-   # check if we need term or fork
+   # check if we need term
    if [[ $interm -eq 1 ]] || needs_term "$program"; then
-
-      if needs_fork; then
-         # open in new terminal
-	 (setsid $(get_term) "$program" "$1") &
-      else
-         # open in current terminal
-         $program "$1"
-      fi
+       (setsid $(get_term) -e "$program" "$1") &
    else
       $program "$1" &> /dev/null &
    fi
