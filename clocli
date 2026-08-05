@@ -50,6 +50,7 @@ pretty_time() {
 	echo "${TIME}s"
 }
 
+#print provided time, or current time if no argment is provided
 timestamp() {
 	date ${1+--date=@$1} '+%Y-%m-%d %H:%M:%S'
 }

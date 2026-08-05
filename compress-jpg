@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 _compress_jpg() {
-    magick "$1" -sampling-factor 4:2:0 -strip -quality 85 -interlace JPEG "${1%.*}_compressed.${1#*.}"
+    magick "$1" -sampling-factor 4:2:0 -strip -quality 85 -interlace JPEG "${1%.*}_compressed.jpg"
 
 }
 

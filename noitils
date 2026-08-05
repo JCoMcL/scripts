@@ -1,7 +1,9 @@
 #!/usr/bin/env sh
 
-test -z "$STEAM_DIR" && STEAM_DIR="$HOME/.var/app/com.valvesoftware.Steam/data/Steam/"
+#test -z "$STEAM_DIR" && STEAM_DIR="$HOME/.var/app/com.valvesoftware.Steam/data/Steam/"
+test -z "$STEAM_DIR" && STEAM_DIR="$HOME/.local/share/Steam"
 NOITAPATH="$STEAM_DIR/steamapps/compatdata/881100/pfx/drive_c/users/steamuser/AppData/LocalLow/Nolla_Games_Noita"
+
 test -d "$NOITAPATH" || {
 	echo "could not find Noita directory at:
 	$NOITAPATH" >&2
