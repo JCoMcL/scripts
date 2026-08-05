@@ -10,9 +10,6 @@ die() {
 	err $@
 	exit 1
 }
-die() {
-	warn "push-ebuild-repo [files]"
-}
 
 while [ $# -gt 0 ]; do
 	case "$1" in
@@ -35,13 +32,13 @@ while [ $# -gt 0 ]; do
 	esac
 done
 
+test -d .git || die "not a git repository: `pwd`"
+
 test -f profiles/repo_name || die "Could not find profiles/repos_name"
-NAME="$(<profiles/repo_name)"
+NAME="$(cat profiles/repo_name)"
 test -n "$NAME" || die "profiles/repo_name is empty"
 REPO=/var/db/repos/$NAME
 CONF=/etc/portage/repos.conf/$NAME.conf
-
-test -d .git || die "not a git repository: `pwd`"
 
 if touch /var/db/repos 2>/dev/null; then
 	mkdir -p $REPO

@@ -2,5 +2,9 @@
 
 eval "$(xdotool getactivewindow getwindowgeometry --shell)"
 echo okay go
-#ffmpeg -video_size "$WIDTH"x"$HEIGHT" -framerate 20 -f X11grab -i :0.0+$X,$Y "screenrec-$(date +%s).mp4"
-ffmpeg -video_size "$WIDTH"x"$HEIGHT" -f X11grab -i :0.0+$X,$Y "screenrec-$(date +%s).mp4"
+# capture system audio from the monitor of the default sink
+ffmpeg -video_size "$WIDTH"x"$HEIGHT" -f x11grab -i :0.0+$X,$Y \
+	-f pulse -i @DEFAULT_MONITOR@ \
+	-vf "crop=trunc(iw/2)*2:trunc(ih/2)*2" \
+	-c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac \
+	"screenrec-$(date +%s).mp4"

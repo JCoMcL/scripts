@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 err() {
 	echo "$(color red)$@$(color off)" >&2
@@ -20,11 +20,11 @@ find_sort_location() {
 }
 
 movemcd() {
-	mv --no-clobber "$1" "$2"
+	mv --debug --no-clobber $MV_ARGS "$1" "$2"
 }
+
 _sortto() {
-	movemcd "$1" "$SORT_LOCATION" &&
-	warn "$1 sorted to $SORT_LOCATION"
+	movemcd "$1" "$SORT_LOCATION"
 }
 
 BASE="$HOME/media"
@@ -38,6 +38,10 @@ while [ $# -gt 0 ]; do
 			;;
 		--dry)
 			movemcd(){ :; }
+			shift
+			;;
+		--force)
+			MV_ARGS="$MV_ARGS --force"
 			shift
 			;;
 		--base)
