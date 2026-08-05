@@ -1,3 +1,15 @@
 #!/usr/bin/env sh
 
-eval $@; echo; echo press enter; read
+case $1 in
+	-e|--errors-only)
+		shift
+		eval $@ && exit 0
+		;;
+	*)
+		eval $@ 
+		;;
+esac
+
+echo
+echo press enter
+read line
