@@ -3,8 +3,6 @@
 # Print project root relative to current working directory
 # Favors correctness over speed; stops at first match.
 
-set -eu
-
 cwd="$(pwd -P)"
 
 # Normalize path
@@ -85,4 +83,9 @@ root="$(find_vcs_root || true)"
 root="$(abspath "$root")"
 
 # Print relative path
-relpath "$root" "$cwd"
+if test -z $1
+    then relpath "$root" "$cwd"
+else
+    cd "$root"
+    $@
+fi
