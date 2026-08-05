@@ -1,0 +1,42 @@
+#!/usr/bin/env sh
+
+# Get the height of the input image
+height=$(magick identify -format "%h" "$1")
+
+# Calculate 10% of the height
+watermark_height=$(( height / 15 ))
+
+svg_height=25
+watermark_svg() {
+cat << EOF
+<svg viewBox="0 0 88 ${svg_height}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="s">
+      <feOffset dx="1" dy="1"/>
+      <feGaussianBlur stdDeviation="1"/>
+      <feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .70 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#s)" fill="#fff" fill-opacity=".36" font-family="sans-serif" transform="translate(2.4 3.5)">
+    <text y="0" font-size="7" dominant-baseline="hanging">Activate Linux</text>
+    <text y="8" font-size="5" dominant-baseline="hanging">Go to Settings to activate Linux.</text>
+  </g>
+</svg>
+EOF
+}
+
+density=$(( (watermark_height * 72) / svg_height ))
+outfile=`mktemp`
+
+magick "$1" \
+  \( -background none -density ${density} <(watermark_svg) -resize x${watermark_height} \) \
+  -gravity southeast \
+  -geometry +20+100 \
+  -composite \
+  $outfile
+
+echo $outfile
