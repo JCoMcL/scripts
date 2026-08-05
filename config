@@ -11,6 +11,6 @@ menu_cmd() {
 
 find $XDG_CONFIG_HOME -maxdepth 1 -name "*$1*" |
 while read RESULT; do find $RESULT -type f; done |
-sort | uniq |
+sort -r | uniq |
 grep -v '.git' |
 menu_cmd | xargs $EDITOR

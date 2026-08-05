@@ -1,7 +1,12 @@
 #!/usr/bin/env sh
 
-MNT="CamMount"
+MNT="/tmp/CamMount"
 
+die(){
+	echo [0m[31m$@ >&2[0m
+	unmount
+	exit 1
+}
 pull_all() {
 	shopt -s globstar
 	set -x
@@ -14,15 +19,14 @@ pull_all() {
 mount() {
 	mkdir -p $MNT &&
 	gphotofs $MNT &&
-	sleep 1
-	echo $MNT &&
-	return ||
-	echo "Error: Failed to mount camera"
-	exit 1
+	while ! ls $MNT >/dev/null
+		do sleep 1
+	done
+	echo $MNT
 }
 
 unmount() {
-	umount $MNT
+	fusermount -u $MNT
 	rmdir $MNT
 }
 

@@ -1,14 +1,15 @@
 #!/usr/bin/env sh
 
+set -x
 clean() {
-	sed 's/^package://' | head -1
+	sed 's/^package://' | sed 's/\r$//'
 }
 app_domain() {
-	adb shell cmd package list packages | fzf | clean
+	adb shell pm list packages | clean | fzf --query="$1"
 }
 
 apk_path() {
-	adb shell pm path "$1" | clean
+	adb shell pm path "$1" | clean | head -1
 }
 
-adb pull "$(apk_path "$(app_domain $1)")" "$1.apk"
+adb pull "$(apk_path "$(app_domain $1)")"

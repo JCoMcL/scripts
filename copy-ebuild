@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-LOCAL_REPO="$HOME/ebuilds"
+LOCAL_REPO="$HOME/src/jortage"
 EBUILD_DIR="$(find /var/db/repos -name "*$1*" -type d | fzf)"
 
 LOCAL_DIR="$LOCAL_REPO/$(echo $EBUILD_DIR | awk -F/ '{print $(NF-1)'})"
