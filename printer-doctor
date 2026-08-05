@@ -1,0 +1,240 @@
+#!/usr/bin/env bash
+#
+# printer-doctor.sh — diagnose common Linux printing (CUPS + mDNS/IPP) problems.
+#
+# Checks, in order:
+#   1. nss-mdns installed
+#   2. mDNS wired into nsswitch.conf
+#   3. Avahi daemon running (needed for .local resolution)
+#   4. CUPS scheduler running
+#   5. CUPS has at least one printer configured
+#   6. A default printer is set
+#   7. The default printer is enabled, accepting jobs, and reachable
+#   8. Printers are discoverable on the network via DNS-SD
+#
+# Read-only: this script diagnoses and suggests fixes, it never changes anything.
+
+set -u
+
+# ---- output helpers ---------------------------------------------------------
+if [ -t 1 ]; then
+    RED=$'\033[31m'; GRN=$'\033[32m'; YLW=$'\033[33m'; BLU=$'\033[34m'; BLD=$'\033[1m'; RST=$'\033[0m'
+else
+    RED=''; GRN=''; YLW=''; BLU=''; BLD=''; RST=''
+fi
+
+fail_count=0
+warn_count=0
+
+pass() { printf '  %s✓%s %s\n' "$GRN" "$RST" "$1"; }
+warn() { printf '  %s!%s %s\n' "$YLW" "$RST" "$1"; warn_count=$((warn_count+1)); }
+fail() { printf '  %s✗%s %s\n' "$RED" "$RST" "$1"; fail_count=$((fail_count+1)); }
+info() { printf '    %s→%s %s\n' "$BLU" "$RST" "$1"; }
+section() { printf '\n%s%s%s\n' "$BLD" "$1" "$RST"; }
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+# Decode Avahi's \ddd decimal escapes (e.g. \032 -> space, \040 -> '(').
+avahi_decode() {
+    awk '{ while (match($0,/\\[0-9][0-9][0-9]/)) {
+             c=substr($0,RSTART+1,3)+0
+             $0=substr($0,1,RSTART-1) sprintf("%c",c) substr($0,RSTART+4) }
+           print }'
+}
+
+# Decode the %XX bits of a URI enough to read it.
+uri_decode() { printf '%s' "$1" | sed 's/%20/ /g; s/%28/(/g; s/%29/)/g'; }
+
+# Is a service active? Works with systemd or OpenRC, falls back to pgrep.
+service_active() {
+    svc=$1; proc=${2:-$1}
+    if have systemctl && systemctl is-active --quiet "$svc" 2>/dev/null; then return 0; fi
+    if have rc-service && rc-service "$svc" status >/dev/null 2>&1; then return 0; fi
+    pgrep -x "$proc" >/dev/null 2>&1
+}
+
+# ---- 1. nss-mdns installed --------------------------------------------------
+section "1. mDNS name resolution (nss-mdns)"
+mdns_lib=$(command ls /usr/lib*/libnss_mdns*.so* /lib*/libnss_mdns*.so* /usr/lib/*/libnss_mdns*.so* 2>/dev/null | command head -n1)
+if [ -n "$mdns_lib" ]; then
+    pass "nss-mdns installed ($mdns_lib)"
+else
+    fail "nss-mdns not installed — the system can't resolve .local hostnames"
+    info "Gentoo:  emerge -av sys-auth/nss-mdns"
+    info "Debian:  apt install libnss-mdns   |   Fedora: dnf install nss-mdns"
+fi
+
+# ---- 2. mDNS configured in nsswitch.conf ------------------------------------
+section "2. nsswitch.conf mDNS configuration"
+hosts_line=$(grep -E '^\s*hosts:' /etc/nsswitch.conf 2>/dev/null)
+if [ -z "$hosts_line" ]; then
+    warn "No 'hosts:' line found in /etc/nsswitch.conf"
+elif printf '%s' "$hosts_line" | grep -q 'mdns'; then
+    pass "mDNS present in hosts line"
+    info "${hosts_line#*:}"
+else
+    fail "hosts line has no mdns module — .local won't resolve (this is a common cause)"
+    info "current: ${hosts_line#*:}"
+    info "add mdns, e.g.:  hosts: files mdns4_minimal [NOTFOUND=return] dns"
+fi
+
+# ---- 3. Avahi daemon --------------------------------------------------------
+section "3. Avahi daemon"
+if service_active avahi-daemon avahi-daemon; then
+    pass "avahi-daemon is running"
+elif have avahi-daemon; then
+    fail "avahi-daemon installed but not running"
+    info "systemd: systemctl enable --now avahi-daemon"
+    info "OpenRC:  rc-service avahi-daemon start && rc-update add avahi-daemon"
+else
+    fail "avahi-daemon not installed — no mDNS/DNS-SD at all"
+    info "Gentoo:  emerge -av net-dns/avahi"
+fi
+
+# ---- 4. CUPS scheduler running ----------------------------------------------
+section "4. CUPS scheduler"
+cups_up=0
+if have lpstat && lpstat -r 2>/dev/null | grep -q 'is running'; then
+    pass "CUPS scheduler is running"; cups_up=1
+elif service_active cupsd cupsd || service_active cups cupsd; then
+    pass "cupsd process is running"; cups_up=1
+else
+    fail "CUPS is not running"
+    info "systemd: systemctl enable --now cups"
+    info "OpenRC:  rc-service cupsd start && rc-update add cupsd"
+fi
+
+# ---- 5. CUPS has printers configured ----------------------------------------
+section "5. Configured printers"
+if [ "$cups_up" -eq 1 ] && have lpstat; then
+    printers=$(lpstat -p 2>/dev/null | awk '/^printer/ {print $2}')
+    if [ -n "$printers" ]; then
+        n=$(printf '%s\n' "$printers" | grep -c .)
+        pass "$n printer(s) configured in CUPS"
+        while IFS= read -r p; do [ -n "$p" ] && info "$p"; done <<EOF
+$printers
+EOF
+    else
+        fail "No printers configured in CUPS"
+        info "Add one at http://localhost:631/admin  or:"
+        info "  lpadmin -p NAME -E -v ipp://HOST/ipp/print -m everywhere"
+    fi
+else
+    warn "Skipped (CUPS not running)"
+    printers=""
+fi
+
+# ---- 6. Default printer -----------------------------------------------------
+section "6. Default printer"
+default=""
+if [ "$cups_up" -eq 1 ] && have lpstat; then
+    default=$(lpstat -d 2>/dev/null | sed -n 's/^system default destination: //p')
+    if [ -n "$default" ]; then
+        pass "Default printer: $default"
+    else
+        warn "No default printer set"
+        info "Set one with:  lpoptions -d NAME   (or lpadmin -d NAME)"
+    fi
+else
+    warn "Skipped (CUPS not running)"
+fi
+
+# ---- 7. Default printer health ----------------------------------------------
+section "7. Default printer health"
+if [ -n "$default" ]; then
+    if lpstat -p "$default" 2>/dev/null | grep -q 'disabled'; then
+        fail "$default is disabled"
+        info "Re-enable:  cupsenable $default"
+    else
+        pass "$default is enabled"
+    fi
+    if lpstat -a "$default" 2>/dev/null | grep -q 'not accepting'; then
+        fail "$default is not accepting jobs"
+        info "Fix:  cupsaccept $default"
+    else
+        pass "$default is accepting jobs"
+    fi
+
+    uri=$(lpstat -v "$default" 2>/dev/null | sed -n 's/.*device for [^:]*: //p')
+    host=$(printf '%s' "$uri" | sed -E 's#^[a-z]+://([^/:]+).*#\1#')
+    info "device: $(uri_decode "$uri")"
+
+    case "$host" in
+        *._tcp.local)
+            # DNS-SD service URI: CUPS resolves this itself via Avahi at print
+            # time, so a plain hostname lookup won't (and shouldn't) work.
+            svc=$(uri_decode "$host")
+            svc=${svc%._ipp._tcp.local}; svc=${svc%._ipps._tcp.local}
+            if have avahi-browse && \
+               { avahi-browse -pt _ipp._tcp; avahi-browse -pt _ipps._tcp; } 2>/dev/null \
+                 | avahi_decode | grep -qiF "$svc"; then
+                pass "DNS-SD queue; service is currently advertised (CUPS resolves it)"
+            else
+                fail "DNS-SD queue but service '$svc' is not being advertised — printer offline?"
+            fi
+            ;;
+        "")
+            warn "Could not parse a host from the device URI"
+            ;;
+        *)
+            # Ordinary host[:port] URI — resolve and probe the port.
+            port=$(printf '%s' "$uri" | sed -nE 's#^[a-z]+://[^/:]+:([0-9]+).*#\1#p')
+            case "$uri" in
+                ipp*|http*) : "${port:=631}" ;;
+                socket*)    : "${port:=9100}" ;;
+                lpd*)       : "${port:=515}" ;;
+                *)          port="" ;;
+            esac
+            if [ -z "$port" ]; then
+                info "Non-network device (USB/serial); skipping reachability."
+            elif getent hosts "$host" >/dev/null 2>&1 || printf '%s' "$host" | grep -qE '^[0-9.]+$'; then
+                if have nc && nc -z -w3 "$host" "$port" 2>/dev/null; then
+                    pass "Reachable at $host:$port"
+                elif (exec 3<>"/dev/tcp/$host/$port") 2>/dev/null; then
+                    pass "Reachable at $host:$port"; exec 3>&- 2>/dev/null
+                else
+                    fail "Cannot connect to $host:$port (printer off, wrong IP, or firewall)"
+                fi
+            else
+                fail "Cannot resolve host '$host' (see mDNS checks above; or use the printer's IP)"
+            fi
+            ;;
+    esac
+else
+    warn "Skipped (no default printer)"
+fi
+
+# ---- 8. Network discovery ---------------------------------------------------
+section "8. Printers discoverable on the network (DNS-SD)"
+if have avahi-browse; then
+    found=$(
+        { avahi-browse -pt _ipp._tcp  2>/dev/null
+          avahi-browse -pt _ipps._tcp 2>/dev/null; } \
+        | avahi_decode | awk -F';' '/^\+/ {print $4}' | sort -u
+    )
+    if [ -n "$found" ]; then
+        n=$(printf '%s\n' "$found" | grep -c .)
+        pass "$n printer(s) advertised via IPP/IPPS:"
+        while IFS= read -r f; do [ -n "$f" ] && info "$f"; done <<EOF
+$found
+EOF
+    else
+        warn "No IPP printers found on the network"
+        info "Check the printer is powered on and on the same subnet/VLAN."
+    fi
+else
+    warn "avahi-browse not available — can't scan the network"
+    info "Gentoo:  emerge -av net-dns/avahi (with the 'utils'/'tools' USE flag)"
+fi
+
+# ---- summary ----------------------------------------------------------------
+section "Summary"
+if [ "$fail_count" -eq 0 ] && [ "$warn_count" -eq 0 ]; then
+    printf '  %sEverything looks healthy.%s\n' "$GRN" "$RST"
+else
+    printf '  %s%d failure(s)%s, %s%d warning(s)%s\n' \
+        "$RED" "$fail_count" "$RST" "$YLW" "$warn_count" "$RST"
+fi
+echo
+
+[ "$fail_count" -gt 0 ] && exit 1 || exit 0
