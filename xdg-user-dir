@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+echo $0 $@ >> ~/src/xdg-user-dir.log
+case $1 in
+	DOCUMENTS)
+		echo $HOME
+		;;
+	*)
+		echo $HOME
+		;;
+esac
