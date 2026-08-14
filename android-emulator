@@ -1,0 +1,30 @@
+#!/usr/bin/env sh
+# Install (if needed) and launch an Android emulator AVD.
+
+# Usage: android-emulator [name] [api] [tag] [abi]
+#   defaults: name=test api=34 tag=google_apis_playstore abi=x86_64
+
+set -e
+
+export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/opt/android-sdk}}"
+export ANDROID_AVD_HOME="${ANDROID_AVD_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/android/avd}"
+TOOLS="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin"
+mkdir -p "$ANDROID_AVD_HOME"
+
+NAME="${1:-test}"
+API="${2:-34}"
+TAG="${3:-google_apis_playstore}"
+ABI="${4:-x86_64}"
+IMAGE="system-images;android-$API;$TAG;$ABI"
+
+# Create the AVD only if it doesn't already exist.
+if ! "$TOOLS/avdmanager" list avd 2>/dev/null | grep -q "Name: $NAME\$"; then
+	echo "Installing prerequisites + $IMAGE (skips anything already present)..."
+	"$TOOLS/sdkmanager" "platform-tools" "emulator" "$IMAGE"
+
+	echo "Creating AVD '$NAME' from $IMAGE..."
+	"$TOOLS/avdmanager" create avd -n "$NAME" -k "$IMAGE"
+fi
+
+echo "Launching '$NAME'..."
+exec "$ANDROID_SDK_ROOT/emulator/emulator" -avd "$NAME"
