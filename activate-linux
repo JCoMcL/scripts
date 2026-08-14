@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # Get the height of the input image
 height=$(magick identify -format "%h" "$1")
@@ -33,7 +33,7 @@ density=$(( (watermark_height * 72) / svg_height ))
 outfile=`mktemp`
 
 magick "$1" \
-  \( -background none -density ${density} <(watermark_svg) -resize x${watermark_height} \) \
+  '(' -background none -density ${density} <(watermark_svg) -resize x${watermark_height} ')' \
   -gravity southeast \
   -geometry +20+100 \
   -composite \

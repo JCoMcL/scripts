@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 err() {
 	echo "$(color red)$@$(color off)" >&2
