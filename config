@@ -6,11 +6,17 @@ menu_cmd() {
 	INPUT=$( cat )
 	echo "$INPUT" | umenu -sq ||
 	echo "$INPUT" | fzf ||
-	echo "$INPUT" | head -1
+	{ command -v fzf >/dev/null 2>&1 || echo "$INPUT" | head -1; }
 }
 
-find $XDG_CONFIG_HOME -maxdepth 1 -name "*$1*" |
-while read RESULT; do find $RESULT -type f; done |
-sort -r | uniq |
-grep -v '.git' |
-menu_cmd | xargs $EDITOR
+FILE=$(
+	find $XDG_CONFIG_HOME -maxdepth 1 -name "*$1*" |
+	while read -r RESULT; do find "$RESULT" -type f; done |
+	sort -r | uniq |
+	grep -v '.git' |
+	menu_cmd
+)
+
+if [ -n "$FILE" ]; then
+	exec $EDITOR "$FILE"
+fi
