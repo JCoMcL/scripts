@@ -44,13 +44,12 @@ if touch /var/db/repos 2>/dev/null; then
 	mkdir -p $REPO
 	git -C $REPO init
 	git -C $REPO config receive.denyCurrentBranch updateInstead
-	git -C $REPO config --add safe.directory "`pwd`"
 
 	test -e $CONF && mv $CONF $CONF~
 	echo "[$NAME]
 location = $REPO
 "	> $CONF
-	git push local
+	git -c safe.directory="`pwd`" push local
 fi
 if test -O . ; then
 	git remote | grep local || git remote add local $REPO
