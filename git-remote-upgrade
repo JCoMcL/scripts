@@ -3,6 +3,8 @@
 # upgrades git push remote from https to ssh
 # it's only meant to work on Gituhb for the moment, but it may work for other providers
 
+#alias git=yadm
+
 transform_url() {
 	if test -n "$1" ; then
 		printf "%s\n" $@ | transform_url
