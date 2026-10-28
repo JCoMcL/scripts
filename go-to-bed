@@ -1,0 +1,73 @@
+#!/usr/bin/env sh
+
+err() {
+	echo "$(color red)$@$(color off)" >&2
+}
+warn() {
+	echo "$(color blue)$@$(color off)" >&2
+}
+die() {
+	err $@
+	exit 1
+}
+die() {
+	warn "go-to-bed [files]"
+}
+
+AT_TIME="21:00"
+
+schedule() {
+	echo $0 -t "$AT_TIME" ${REPEAT+-r} -n $@ | at "$AT_TIME"
+}
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-q|--quiet)
+			warn(){ :; }
+			shift
+			;;
+		-n|--now)
+			NOW=true
+			shift
+			;;
+		-t|--time)
+			shift
+			AT_TIME="$1"
+			shift
+			;;
+		-r|--repeat)
+			REPEAT=true
+			shift
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			break
+			;;
+	esac
+done
+
+show_notification() {
+	while true; do
+		RESULT=$(notify-send -u critical --action=NO="You're not my mom" --action=YES="alright..." 'go to bed, idiot')
+		case $RESULT in
+			YES)
+				sudo loginctl suspend
+				return
+				;;
+			NO)
+				return
+				;;
+		esac
+	done
+}
+
+set -x
+if test -v NOW; then
+	show_notification
+	test -v REPEAT && schedule
+else
+	schedule
+fi
