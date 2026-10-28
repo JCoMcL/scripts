@@ -1,0 +1,349 @@
+#!/usr/bin/env sh
+
+# find git repos with uncommitted or unpushed changes
+# searches the given paths (default: the working directory) for git repos
+# and reports the ones with uncommitted changes, unpushed commits or stashes
+
+err() {
+	echo "[0m[31m$@[0m" >&2
+}
+warn() {
+	echo "[1m[34m$@[0m" >&2
+}
+die() {
+	err "$@"
+	exit 1
+}
+
+usage() {
+	echo "dirty-repos [-q] [-a] [-v] [-f] [-s] [-e] [-C] [-m depth] [-p dir] [-P] [-x|-X] [path...]"
+	echo "  -q  only print the paths of dirty repos"
+	echo "  -a  report every repo found, not just the dirty ones"
+	echo "  -v  list the changed files of each dirty repo"
+	echo "  -f  fetch each repo first, so ahead/behind is accurate"
+	echo "  -s  count stashes as changes"
+	echo "  -e  exit 1 if any dirty repo is found"
+	echo "  -C  drop into \$SHELL in each dirty repo, one after another"
+	echo "  -m  maximum depth to descend, 0 for no limit (default: $DEFAULT_MAXDEPTH)"
+	echo "      note that a repo n directories down needs a depth of n+1"
+	echo "  -p  also prune directories with this name, may be repeated"
+	echo "  -P  prune nothing at all"
+	echo "  -x  stay on one filesystem (default)"
+	echo "  -X  cross filesystem boundaries"
+	echo "  -n  ignore untracked files"
+	echo "  -h  this text"
+	exit 1
+}
+
+# the opinionated defaults, listed so they can be announced
+DEFAULT_MAXDEPTH=4
+DEFAULT_PRUNE=$(printf %s ".Trash-1000 .cache .cargo .gradle .m2 .mypy_cache .npm
+	.pytest_cache .rustup .tox .venv .yarn Steam __pycache__ build dist
+	node_modules out steamapps target trash vendor venv" | tr -s ' \t\n' ' ')
+
+# the defaults that are still in effect, minus whatever the flags have replaced
+SETTINGS="MAXDEPTH=$DEFAULT_MAXDEPTH
+PRUNE=\"$DEFAULT_PRUNE\"
+NO_CROSS_DEVICE
+UNTRACKED_FILES=normal
+IGNORE_STASHES"
+
+# a default the user has spoken for does not need announcing
+forget_default() {
+	SETTINGS=$(echo "$SETTINGS" | grep -v "^$1")
+}
+
+# builds a find expression that matches the directories to prune
+prune_expr() {
+	set -- $PRUNE_DIRS
+	expr=
+	while test $# -gt 0
+	do
+		expr="$expr $(test -n "$expr" && echo -o) -type d -name $1"
+		shift
+	done
+	echo "$expr"
+}
+
+# emits the root of every repo below the given paths,
+# skipping repos nested inside repos that were already emitted
+find_repos() {
+	deptharg= prune=
+	# the defaults and the names from the flags can overlap
+	PRUNE_DIRS=$(echo $PRUNE_DIRS | tr ' ' '\n' | awk '!seen[$0]++' | tr '\n' ' ')
+	test -n "$MAXDEPTH" && test "$MAXDEPTH" != 0 && deptharg="-maxdepth $MAXDEPTH"
+	test -n "$NOPRUNE" || prune=$(prune_expr)
+	{
+		# a search path that is itself a repo is always included,
+		# mindepth keeps it from being pruned along with the junk below it
+		for path
+		do
+			case "$path" in
+				?*/) path=${path%/} ;;
+			esac
+			test -e "$path/.git" && echo "$path"
+		done
+		if test -n "$prune"
+		then
+			find "$@" $deptharg ${XDEV:+-xdev} -mindepth 1 \
+				\( $prune \) -prune -o \( -name .git -prune -print \) 2>/dev/null
+		else
+			find "$@" $deptharg ${XDEV:+-xdev} -mindepth 1 \
+				\( -name .git -prune -print \) 2>/dev/null
+		fi
+	} |
+	while read -r dotgit
+	do
+		echo "${dotgit%/.git}"
+	done |
+	LC_ALL=C sort |
+	awk '{
+		if (seen[$0]++) next
+		for (i = 1; i <= n; i++)
+			if (index($0, roots[i] "/") == 1)
+				next
+		roots[++n] = $0
+		sub(/^\.\//, "", $0)
+		print
+	}'
+}
+
+# prints a summary line of everything local to a repo,
+# fails if the repo cannot be read
+repo_summary() {
+	git -C "$1" status --porcelain=v2 --branch --show-stash $UNTRACKED 2>/dev/null |
+	awk '
+		/^# branch.head/ { branch = $3 }
+		/^# branch.upstream/ { upstream = $3 }
+		/^# branch.ab/ { ahead = $3; behind = $4 }
+		/^# stash/ { stash = $3 }
+		/^1 |^2 / {
+			if (substr($2, 1, 1) != ".") staged++
+			if (substr($2, 2, 1) != ".") unstaged++
+		}
+		/^u / { conflict++ }
+		/^\?/ { untracked++ }
+		END {
+			if (!NR) exit 1
+			sub(/^\+/, "", ahead)
+			sub(/^-/, "", behind)
+			printf "%s %s %d %d %d %d %d %d %d\n",
+				branch ? branch : "-", upstream ? upstream : "-",
+				staged, unstaged, untracked, conflict, stash, ahead, behind
+		}'
+}
+
+# prints "<n> unpushed on <branch>" for every branch besides the checked out
+# one that has commits no remote has
+unpushed_branches() {
+	dir=$1
+	head=$2
+	git -C "$dir" for-each-ref \
+		--format='%(refname:short)|%(upstream:short)|%(upstream:track)' refs/heads |
+	while IFS='|' read -r branch upstream track
+	do
+		test "$branch" = "$head" && continue
+		case "$track" in
+			*ahead*)
+				test "$branch" = "$head" && continue
+				# the track looks like "[ahead 2, behind 1]"
+				echo "$(echo "$track" | sed 's/.*ahead \([0-9][0-9]*\).*/\1/') unpushed on $branch"
+				continue
+				;;
+		esac
+		test -n "$upstream" && continue
+		n=$(git -C "$dir" rev-list --count "$branch" --not --remotes 2>/dev/null)
+		test "${n:-0}" -gt 0 && echo "$n unpushed on $branch"
+	done
+}
+
+report_repo() {
+	dir="$1"
+	summary=$(repo_summary "$dir") || return 1
+	set -- $summary
+	branch=$1; upstream=$2
+	staged=$3; unstaged=$4; untracked=$5; conflict=$6; stash=$7; ahead=$8; behind=$9
+	uncommitted=$((staged + unstaged + untracked + conflict))
+	current=$branch
+	test "$branch" = - && branch="no commits"
+	others=$(unpushed_branches "$dir" "$current")
+
+	# a head with no upstream has no ahead and behind for git to report,
+	# so the commits no remote has have to be counted by hand
+	test "$upstream" = - &&
+		ahead=$(git -C "$dir" rev-list --count HEAD --not --remotes 2>/dev/null)
+	ahead=${ahead:-0}
+
+	dirty=false
+	test $uncommitted -gt 0 && dirty=true
+	test $ahead -gt 0 && dirty=true
+	test -n "$others" && dirty=true
+	test "$STASHES" && test $stash -gt 0 && dirty=true
+
+	FOUND_REPO=true
+	test "$dirty" = false && {
+		test "$ALL" && echo "$(color blue)clean: $dir [$(color ltblue)$branch$(color off)]$(color off)"
+		return 0
+	}
+	FOUND_DIRTY=true
+
+	if test "$QUIET"
+	then echo "$dir"
+	else
+		echo "$(color ltyellow)$dir$(color off)"
+		tracking="branch: $(color ltblue)$branch$(color off)"
+		test "$upstream" = - || tracking="$tracking -> $upstream"
+		test $ahead -gt 0 && {
+			test "$upstream" = - && aheadword=unpushed || aheadword=ahead
+			tracking="$tracking [$(color ltgreen)$ahead $aheadword$(color off)]"
+		}
+		test $behind -gt 0 && tracking="$tracking [$(color red)$behind behind$(color off)]"
+		echo "  $tracking"
+		test $uncommitted -gt 0 && echo "  $uncommitted uncommitted: $staged staged, $unstaged unstaged, $untracked untracked, $conflict conflicted"
+		test $stash -gt 0 && echo "  $stash stashed"
+		test -n "$others" && echo "$others" | sed 's/^/  /'
+		test "$VERBOSE" && test $uncommitted -gt 0 &&
+			git -C "$dir" status --short $UNTRACKED | sed 's/^/  /'
+		echo
+	fi
+
+	if test -n "$CD"
+	then launch_shell "$dir"
+	fi
+}
+
+# drops the user into a repo to deal with whatever is dirty in it
+launch_shell() {
+	shell=${SHELL:-sh}
+	# the repos come from a heredoc, so a shell has to be given the terminal,
+	# which is not there at all when there is no controlling terminal
+	echo "$(color ltblue)entering $1 with $shell, exit to go to the next repo$(color off)" >&2
+	if { : < /dev/tty; } 2>/dev/null
+	then (cd "$1" && exec $shell < /dev/tty)
+	else (cd "$1" && exec $shell)
+	fi
+}
+
+QUIET=
+ALL=
+VERBOSE=
+STASHES=
+FETCH=
+EXITCODE=
+CD=
+NOPRUNE=
+XDEV=true
+MAXDEPTH=$DEFAULT_MAXDEPTH
+UNTRACKED=--untracked-files=normal
+PRUNE_DIRS=$DEFAULT_PRUNE
+FOUND_REPO=
+FOUND_DIRTY=
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-q|--quiet)
+			QUIET=true
+			warn(){ :; }
+			shift
+			;;
+		-a|--all)
+			ALL=true
+			shift
+			;;
+		-v|--verbose)
+			VERBOSE=true
+			shift
+			;;
+		-f|--fetch)
+			FETCH=true
+			shift
+			;;
+		-s|--stashes)
+			STASHES=true
+			forget_default IGNORE_STASHES
+			shift
+			;;
+		-e|--exit-code)
+			EXITCODE=true
+			shift
+			;;
+		-C|--cd)
+			CD=true
+			shift
+			;;
+		-m|--maxdepth)
+			shift
+			set -u; MAXDEPTH=$1; set +u
+			forget_default MAXDEPTH
+			shift
+			;;
+		-p|--prune)
+			shift
+			set -u
+			case "$1" in
+				*[!A-Za-z0-9_.+-]*) die "not a directory name: $1" ;;
+			esac
+			# a named directory is worth pruning, so it beats an earlier -P
+			NOPRUNE=
+			PRUNE_DIRS="$PRUNE_DIRS $1"
+			set +u
+			forget_default PRUNE
+			shift
+			;;
+		-P|--no-prune)
+			NOPRUNE=true
+			forget_default PRUNE
+			shift
+			;;
+		-x|--xdev)
+			XDEV=true
+			forget_default NO_CROSS_DEVICE
+			shift
+			;;
+		-X|--no-xdev)
+			XDEV=
+			forget_default NO_CROSS_DEVICE
+			shift
+			;;
+		-n|--no-untracked)
+			UNTRACKED=--untracked-files=no
+			forget_default UNTRACKED_FILES
+			shift
+			;;
+		-h|--help)
+			usage
+			;;
+		--)
+			shift
+			break
+			;;
+		-*)
+			die "unknown flag: $1"
+			;;
+		*)
+			break
+			;;
+	esac
+done
+
+test $# -gt 0 || set -- .
+# only the defaults that survived flag parsing have anything left to say
+test -n "$SETTINGS" &&
+	echo "$SETTINGS" | sed "s|^|$(color ltblue)using |;s|\$|$(color off)|" >&2
+
+while read -r repo; do
+	test -n "$repo" || continue
+	test "$FETCH" && git -C "$repo" fetch --all --prune --quiet >/dev/null 2>&1
+	report_repo "$repo" ||
+		warn "could not read repository: $repo"
+done <<EOF
+$(find_repos "$@")
+EOF
+
+test -n "$FOUND_REPO" || echo "no git repos found"
+test -n "$FOUND_DIRTY" || {
+	test -n "$FOUND_REPO" && echo "all repos are clean"
+	true
+}
+test "$EXITCODE" && test -n "$FOUND_DIRTY" && exit 1
+exit 0
