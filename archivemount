@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+mountpoint() {
+	mkdir -p ${1%%.*} && echo ${1%%.*}
+}
+set -x
+/usr/bin/archivemount "$1" "$(mountpoint "$1")"

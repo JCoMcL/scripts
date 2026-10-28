@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+#
+# quiet-fan - temporarily stop the CPU/chassis fan for quiet recording.
+#
+# Stops the Dell fan, watches the CPU package temperature, and restores the
+# original fan settings when it exits (including on Ctrl-C or if it gets too
+# hot). Needs root, so run it with sudo.
+#
+# Usage:
+#   sudo quiet-fan                 # limit defaults to 70 C
+#   sudo quiet-fan 65              # quit once the package hits 65 C
+#   QUIET_FAN_LIMIT=75 sudo -E quiet-fan
+#   sudo quiet-fan --restore       # just restore fan to auto/full and exit
+#
+set -euo pipefail
+
+FAN_HWMON_NAME="${QUIET_FAN_FAN_HWMON:-dell_smm}"
+CPU_HWMON_NAME="${QUIET_FAN_CPU_HWMON:-coretemp}"
+CPU_TEMP_FILE="${QUIET_FAN_CPU_TEMP:-temp1_input}"   # coretemp temp1 = Package id 0
+POLL_SECONDS="${QUIET_FAN_POLL:-2}"
+PWM_OFF="${QUIET_FAN_PWM_OFF:-0}"
+
+limit="${QUIET_FAN_LIMIT:-70}"
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'
+    exit 0
+fi
+if [[ "${1:-}" == "--restore" ]]; then
+    limit=0
+elif [[ "${1:-}" =~ ^[0-9]+$ ]]; then
+    limit="$1"
+fi
+[[ "$limit" =~ ^[0-9]+$ ]] || { echo "limit must be an integer" >&2; exit 1; }
+
+if [[ "$(id -u)" -ne 0 ]]; then
+    echo "quiet-fan: must run as root (try: sudo $0 $limit)" >&2
+    exit 1
+fi
+
+find_hwmon() {
+    local want="$1" h
+    for h in /sys/class/hwmon/hwmon*; do
+        if [[ "$(cat "$h/name" 2>/dev/null)" == "$want" ]]; then
+            printf '%s\n' "$h"
+            return 0
+        fi
+    done
+    return 1
+}
+
+fan_hwmon="$(find_hwmon "$FAN_HWMON_NAME")" || {
+    echo "quiet-fan: no hwmon device named '$FAN_HWMON_NAME'" >&2
+    exit 1
+}
+cpu_hwmon="$(find_hwmon "$CPU_HWMON_NAME")" || {
+    echo "quiet-fan: no hwmon device named '$CPU_HWMON_NAME'" >&2
+    exit 1
+}
+
+pwm="$fan_hwmon/pwm1"
+pwm_enable="$fan_hwmon/pwm1_enable"
+fan_input="$fan_hwmon/fan1_input"
+cpu_temp="$cpu_hwmon/$CPU_TEMP_FILE"
+
+for f in "$pwm" "$pwm_enable" "${cpu_hwmon}/${CPU_TEMP_FILE}"; do
+    [[ -w "$f" || -r "$f" ]] || { echo "quiet-fan: cannot access $f" >&2; exit 1; }
+done
+
+orig_enable="$(cat "$pwm_enable")"
+orig_pwm="$(cat "$pwm")"
+restored=0
+
+restore() {
+    [[ "$restored" -eq 1 ]] && return
+    restored=1
+    printf '\n'
+    echo "$orig_enable" > "$pwm_enable" 2>/dev/null || true
+    echo "$orig_pwm"    > "$pwm"        2>/dev/null || true
+    echo "quiet-fan: fan restored (pwm1_enable=$orig_enable, pwm1=$orig_pwm)"
+}
+trap restore EXIT INT TERM
+
+if [[ "$limit" -eq 0 ]]; then
+    exit 0   # --restore path: trap already put things back
+fi
+
+echo "quiet-fan: stopping fan (pwm1=$PWM_OFF), quitting at ${limit}C. Ctrl-C to stop."
+echo "$orig_enable" > "$pwm_enable"
+echo "$PWM_OFF"     > "$pwm"
+
+while :; do
+    raw="$(cat "$cpu_temp")"
+    temp_c=$(( raw / 1000 ))
+    rpm="$(cat "$fan_input" 2>/dev/null || echo '?')"
+    printf '\r  CPU %2dC (limit %2dC)   fan %s RPM      ' "$temp_c" "$limit" "$rpm"
+    if (( temp_c >= limit )); then
+        printf '\n'
+        echo "quiet-fan: reached ${temp_c}C, restoring fan." >&2
+        break
+    fi
+    sleep "$POLL_SECONDS"
+done

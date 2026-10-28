@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+eval $(xdotool getwindowgeometry --shell $(xdotool getactivewindow))
+
+sgn() {
+	[ "$1" -ge 0 ] && printf '+%s' "$1" || printf -- '-%s' "$((-1 * $1))"
+}
+
+printf '%sx%s' "$WIDTH" "$HEIGHT"
+sgn "$X"
+sgn "$Y"
+printf '\n'

@@ -1,0 +1,55 @@
+#!/usr/bin/env sh
+
+err() {
+	echo "$(color red)$@$(color off)" >&2
+}
+warn() {
+	code=$?
+	#test -z "$@" && return $
+	echo  "$(color blue)$@$(color off)" >&2
+	return $code
+}
+die() {
+	err $@
+	exit 1
+}
+
+return_code() {
+	return $1
+}
+
+_to_flac() {
+	color red
+	flac --silent --best --keep-foreign-metadata-if-present --delete-input-file "$1" 2>&1
+	code=$?
+	color off
+	return_code $code && warn $1
+}
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-q|--quiet)
+			warn(){ :; }
+			shift
+			;;
+		-o|--option)
+			shift 
+			set -u; OPTION=$1; set +u
+			shift
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			break
+			;;
+	esac
+done
+
+: ${OPTION:=default}
+
+for f in "$@"; do
+	_to_flac "$f"
+done
+
