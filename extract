@@ -10,6 +10,7 @@ extract_one() {
 		*.zip|*.jar) unzip "$f";;
 		*.rar) unrar x "$f";;
 		*.7z) 7z x "$f";;
+		*) echo no extractor configured for $f >/dev/stderr; exit 1 ;;
 	esac
 }
 

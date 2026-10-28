@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 RED=[0m[31m
 BLUE=[0m[34m

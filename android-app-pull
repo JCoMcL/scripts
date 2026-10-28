@@ -8,8 +8,9 @@ app_domain() {
 	adb shell pm list packages | clean | fzf --query="$1"
 }
 
-apk_path() {
-	adb shell pm path "$1" | clean | head -1
+apk_dir() {
+	adb shell pm path "$1" | clean | head -1 | xargs dirname
 }
 
-adb pull "$(apk_path "$(app_domain $1)")"
+pkg="$(app_domain "$1")"
+adb pull "$(apk_dir "$pkg")" "$pkg"

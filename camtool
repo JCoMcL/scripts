@@ -7,11 +7,16 @@ die(){
 	unmount
 	exit 1
 }
+
+list() {
+	find "$(mount)" -type f | xargs -d'\n' echo
+}
+
 pull_all() {
 	shopt -s globstar
 	set -x
 	rsync --verbose --progress --remove-source-files --no-relative --no-implied-dirs \
-		"$(mount)"/** ${1:-"."} &&
+		$(list) ${1:-"."} &&
 	set +x
 	unmount
 }
@@ -19,7 +24,7 @@ pull_all() {
 mount() {
 	mkdir -p $MNT &&
 	gphotofs $MNT &&
-	while ! ls $MNT >/dev/null
+	while ! ls $MNT | grep . >/dev/null
 		do sleep 1
 	done
 	echo $MNT
